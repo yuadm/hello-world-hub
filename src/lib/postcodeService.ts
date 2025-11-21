@@ -114,7 +114,9 @@ export function postcodeResultToAddress(result: PostcodeResult, addressLine1: st
  * Lookup addresses using getAddress.io API
  */
 export async function lookupAddressesByPostcode(postcode: string): Promise<AddressListItem[]> {
-  const apiKey = import.meta.env.VITE_GETADDRESS_API_KEY;
+  // NOTE: For this frontend-only app we store the public getAddress.io API key directly in code.
+  // This is safe for the standard (non-admin) key as getAddress.io is designed for client-side use.
+  const apiKey = "UDbkxAM3oE67cxYmlvXmrA48837";
   
   if (!apiKey) {
     throw new Error("getAddress.io API key not configured");
