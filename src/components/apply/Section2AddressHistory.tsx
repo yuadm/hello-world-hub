@@ -4,6 +4,7 @@ import { GovUKInput } from "./GovUKInput";
 import { GovUKRadio } from "./GovUKRadio";
 import { GovUKButton } from "./GovUKButton";
 import { GovUKTextarea } from "./GovUKTextarea";
+import { GovUKSelect } from "./GovUKSelect";
 import { useState, useMemo } from "react";
 import { Plus, Trash2, AlertCircle, CheckCircle2, Search } from "lucide-react";
 import { 
@@ -11,7 +12,12 @@ import {
   formatDateRange, 
   daysBetween 
 } from "@/lib/addressHistoryCalculator";
-import { lookupPostcode, validatePostcode, postcodeResultToAddress } from "@/lib/postcodeService";
+import { 
+  lookupAddressesByPostcode, 
+  validatePostcode, 
+  formatPostcode,
+  type AddressListItem 
+} from "@/lib/postcodeService";
 import { toast } from "sonner";
 
 interface Props {
@@ -20,8 +26,10 @@ interface Props {
 
 export const Section2AddressHistory = ({ form }: Props) => {
   const { register, watch, setValue } = form;
-  const [showManualAddress, setShowManualAddress] = useState(true);
+  const [showManualAddress, setShowManualAddress] = useState(false);
   const [isLookingUpPostcode, setIsLookingUpPostcode] = useState(false);
+  const [addressList, setAddressList] = useState<AddressListItem[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string>("");
   const addressHistory = watch("addressHistory") || [];
   const livedOutsideUK = watch("livedOutsideUK");
   const militaryBase = watch("militaryBase");
@@ -65,22 +73,40 @@ export const Section2AddressHistory = ({ form }: Props) => {
     }
 
     setIsLookingUpPostcode(true);
+    setAddressList([]);
+    setSelectedAddress("");
+
     try {
-      const result = await lookupPostcode(homePostcode);
+      const addresses = await lookupAddressesByPostcode(homePostcode);
       
-      if (result) {
-        // Auto-fill town from admin district
-        setValue("homeAddress.town", result.admin_district || result.region || "");
-        setValue("homeAddress.postcode", result.postcode);
-        setShowManualAddress(true);
-        toast.success("Postcode found! Please complete the address details.");
+      if (addresses.length > 0) {
+        setAddressList(addresses);
+        setValue("homePostcode", formatPostcode(homePostcode));
+        toast.success(`Found ${addresses.length} address${addresses.length > 1 ? 'es' : ''}. Please select yours.`);
       } else {
-        toast.error("Postcode not found. Please check and try again.");
+        toast.error("No addresses found for this postcode. Please enter manually.");
+        setShowManualAddress(true);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to lookup postcode");
+      toast.error(error instanceof Error ? error.message : "Failed to lookup addresses");
+      setShowManualAddress(true);
     } finally {
       setIsLookingUpPostcode(false);
+    }
+  };
+
+  const handleAddressSelect = (value: string) => {
+    setSelectedAddress(value);
+    
+    if (value && value !== "") {
+      const address = addressList[parseInt(value)];
+      if (address) {
+        setValue("homeAddress.line1", address.line1);
+        setValue("homeAddress.line2", address.line2);
+        setValue("homeAddress.town", address.town);
+        setValue("homeAddress.postcode", formatPostcode(homePostcode));
+        toast.success("Address selected and filled in!");
+      }
     }
   };
 
@@ -112,15 +138,36 @@ export const Section2AddressHistory = ({ form }: Props) => {
           </GovUKButton>
           <button
             type="button"
-            onClick={() => setShowManualAddress(!showManualAddress)}
+            onClick={() => {
+              setShowManualAddress(!showManualAddress);
+              setAddressList([]);
+              setSelectedAddress("");
+            }}
             className="underline text-primary hover:text-primary/80 text-sm"
           >
-            {showManualAddress ? "Hide address form" : "Enter address manually"}
+            {showManualAddress ? "Use postcode lookup" : "Enter address manually"}
           </button>
         </div>
       </div>
 
-      {showManualAddress && (
+      {addressList.length > 0 && !showManualAddress && (
+        <GovUKSelect
+          label="Select your address"
+          hint="Choose your address from the list"
+          options={[
+            { value: "", label: "Please select an address" },
+            ...addressList.map((addr, index) => ({
+              value: index.toString(),
+              label: addr.formatted,
+            })),
+          ]}
+          value={selectedAddress}
+          onChange={(e) => handleAddressSelect(e.target.value)}
+          required
+        />
+      )}
+
+      {(showManualAddress || selectedAddress) && (
         <div className="space-y-4">
           <GovUKInput
             label="Address line 1"
