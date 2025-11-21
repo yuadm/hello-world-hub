@@ -5,12 +5,14 @@ import { GovUKRadio } from "./GovUKRadio";
 import { GovUKButton } from "./GovUKButton";
 import { GovUKTextarea } from "./GovUKTextarea";
 import { useState, useMemo } from "react";
-import { Plus, Trash2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, AlertCircle, CheckCircle2, Search } from "lucide-react";
 import { 
   calculateAddressHistoryCoverage, 
   formatDateRange, 
   daysBetween 
 } from "@/lib/addressHistoryCalculator";
+import { lookupPostcode, validatePostcode, postcodeResultToAddress } from "@/lib/postcodeService";
+import { toast } from "sonner";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -19,10 +21,12 @@ interface Props {
 export const Section2AddressHistory = ({ form }: Props) => {
   const { register, watch, setValue } = form;
   const [showManualAddress, setShowManualAddress] = useState(true);
+  const [isLookingUpPostcode, setIsLookingUpPostcode] = useState(false);
   const addressHistory = watch("addressHistory") || [];
   const livedOutsideUK = watch("livedOutsideUK");
   const militaryBase = watch("militaryBase");
   const homeMoveIn = watch("homeMoveIn");
+  const homePostcode = watch("homePostcode");
 
   // Calculate address history coverage
   const coverage = useMemo(() => {
@@ -49,6 +53,37 @@ export const Section2AddressHistory = ({ form }: Props) => {
     setValue("addressHistory", addressHistory.filter((_, i) => i !== index));
   };
 
+  const handlePostcodeLookup = async () => {
+    if (!homePostcode) {
+      toast.error("Please enter a postcode first");
+      return;
+    }
+
+    if (!validatePostcode(homePostcode)) {
+      toast.error("Please enter a valid UK postcode");
+      return;
+    }
+
+    setIsLookingUpPostcode(true);
+    try {
+      const result = await lookupPostcode(homePostcode);
+      
+      if (result) {
+        // Auto-fill town from admin district
+        setValue("homeAddress.town", result.admin_district || result.region || "");
+        setValue("homeAddress.postcode", result.postcode);
+        setShowManualAddress(true);
+        toast.success("Postcode found! Please complete the address details.");
+      } else {
+        toast.error("Postcode not found. Please check and try again.");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to lookup postcode");
+    } finally {
+      setIsLookingUpPostcode(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <h2 className="text-3xl font-bold text-foreground">2. Address History</h2>
@@ -64,15 +99,25 @@ export const Section2AddressHistory = ({ form }: Props) => {
           placeholder="e.g. SW1A 1AA"
           {...register("homePostcode")}
         />
-        <p className="mt-2 text-sm">
+        <div className="mt-3 flex gap-3">
+          <GovUKButton
+            type="button"
+            variant="secondary"
+            onClick={handlePostcodeLookup}
+            disabled={isLookingUpPostcode || !homePostcode}
+            className="flex items-center gap-2"
+          >
+            <Search className="h-4 w-4" />
+            {isLookingUpPostcode ? "Looking up..." : "Find address"}
+          </GovUKButton>
           <button
             type="button"
             onClick={() => setShowManualAddress(!showManualAddress)}
-            className="underline text-primary hover:text-primary/80"
+            className="underline text-primary hover:text-primary/80 text-sm"
           >
             {showManualAddress ? "Hide address form" : "Enter address manually"}
           </button>
-        </p>
+        </div>
       </div>
 
       {showManualAddress && (

@@ -6,7 +6,10 @@ import { GovUKButton } from "./GovUKButton";
 import { GovUKTextarea } from "./GovUKTextarea";
 import { GovUKAutocomplete } from "./GovUKAutocomplete";
 import { UK_LOCAL_AUTHORITIES } from "@/lib/ukLocalAuthorities";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
+import { useState } from "react";
+import { lookupPostcode, validatePostcode } from "@/lib/postcodeService";
+import { toast } from "sonner";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -14,11 +17,13 @@ interface Props {
 
 export const Section3Premises = ({ form }: Props) => {
   const { register, watch, setValue } = form;
+  const [isLookingUpChildcarePostcode, setIsLookingUpChildcarePostcode] = useState(false);
   const premisesType = watch("premisesType");
   const sameAddress = watch("sameAddress");
   const useAdditionalPremises = watch("useAdditionalPremises");
   const additionalPremises = watch("additionalPremises") || [];
   const pets = watch("pets");
+  const childcarePostcode = watch("childcareAddress.postcode");
 
   const showChildcareAddress =
     (premisesType === "Domestic" && sameAddress === "No") || premisesType === "Non-domestic";
@@ -29,6 +34,35 @@ export const Section3Premises = ({ form }: Props) => {
 
   const removeAdditionalPremises = (index: number) => {
     setValue("additionalPremises", additionalPremises.filter((_, i) => i !== index));
+  };
+
+  const handleChildcarePostcodeLookup = async () => {
+    if (!childcarePostcode) {
+      toast.error("Please enter a postcode first");
+      return;
+    }
+
+    if (!validatePostcode(childcarePostcode)) {
+      toast.error("Please enter a valid UK postcode");
+      return;
+    }
+
+    setIsLookingUpChildcarePostcode(true);
+    try {
+      const result = await lookupPostcode(childcarePostcode);
+      
+      if (result) {
+        setValue("childcareAddress.town", result.admin_district || result.region || "");
+        setValue("childcareAddress.postcode", result.postcode);
+        toast.success("Postcode found! Please complete the address details.");
+      } else {
+        toast.error("Postcode not found. Please check and try again.");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to lookup postcode");
+    } finally {
+      setIsLookingUpChildcarePostcode(false);
+    }
   };
 
   return (
@@ -80,6 +114,27 @@ export const Section3Premises = ({ form }: Props) => {
             your own home, we will need to conduct suitability checks on everyone living there aged
             16 or over.
           </p>
+          <div>
+            <GovUKInput
+              label="Postcode"
+              required
+              widthClass="10"
+              placeholder="e.g. SW1A 1AA"
+              {...register("childcareAddress.postcode")}
+            />
+            <div className="mt-3">
+              <GovUKButton
+                type="button"
+                variant="secondary"
+                onClick={handleChildcarePostcodeLookup}
+                disabled={isLookingUpChildcarePostcode || !childcarePostcode}
+                className="flex items-center gap-2"
+              >
+                <Search className="h-4 w-4" />
+                {isLookingUpChildcarePostcode ? "Looking up..." : "Find address"}
+              </GovUKButton>
+            </div>
+          </div>
           <GovUKInput
             label="Childcare Address - Line 1"
             required
@@ -87,7 +142,6 @@ export const Section3Premises = ({ form }: Props) => {
           />
           <GovUKInput label="Address line 2" {...register("childcareAddress.line2")} />
           <GovUKInput label="Town or city" required {...register("childcareAddress.town")} />
-          <GovUKInput label="Postcode" required widthClass="10" {...register("childcareAddress.postcode")} />
         </div>
       )}
 
