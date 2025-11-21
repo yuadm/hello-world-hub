@@ -114,7 +114,7 @@ export function postcodeResultToAddress(result: PostcodeResult, addressLine1: st
  * Lookup addresses using getAddress.io API
  */
 export async function lookupAddressesByPostcode(postcode: string): Promise<AddressListItem[]> {
-  const apiKey = import.meta.env.VITE_GETADDRESS_API_KEY;
+  const apiKey = "UDbkxAM3oE67cxYmlvXmrA48837";
   
   if (!apiKey) {
     throw new Error("getAddress.io API key not configured");
