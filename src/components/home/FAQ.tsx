@@ -34,30 +34,30 @@ const faqs = [
 
 const FAQ = () => {
   return (
-    <section className="py-32 relative overflow-hidden bg-gradient-to-b from-background via-accent/5 to-background">
+    <section className="py-24 bg-muted/30">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-4xl font-bold mb-4">
             Frequently Asked{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Questions</span>
+            <span className="text-primary">Questions</span>
           </h2>
-          <p className="text-xl text-muted-foreground leading-relaxed">
+          <p className="text-xl text-muted-foreground">
             Everything you need to know about ChildMinderPro
           </p>
         </div>
 
         <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-5">
+          <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`}
-                className="bg-card/80 backdrop-blur-sm border-2 border-border/50 rounded-2xl px-7 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-lg"
+                className="bg-card border border-border rounded-lg px-6"
               >
-                <AccordionTrigger className="text-left hover:no-underline py-6">
-                  <span className="font-bold text-base">{faq.question}</span>
+                <AccordionTrigger className="text-left hover:no-underline">
+                  <span className="font-semibold">{faq.question}</span>
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed pb-6">
+                <AccordionContent className="text-muted-foreground leading-relaxed">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
