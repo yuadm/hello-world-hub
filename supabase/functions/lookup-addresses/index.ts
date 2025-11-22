@@ -38,10 +38,12 @@ serve(async (req) => {
       );
     }
 
-    const cleanPostcode = postcode.replace(/\s/g, "");
+    // Format postcode properly - Ideal Postcodes accepts with or without spaces
+    const cleanPostcode = postcode.trim().toUpperCase();
     const apiUrl = `https://api.ideal-postcodes.co.uk/v1/postcodes/${encodeURIComponent(cleanPostcode)}?api_key=${apiKey}`;
 
-    console.log(`Fetching addresses for postcode: ${postcode}`);
+    console.log(`Fetching addresses for postcode: ${cleanPostcode}`);
+    console.log(`API URL: ${apiUrl.replace(apiKey, 'REDACTED')}`);
 
     const response = await fetch(apiUrl);
     
@@ -103,7 +105,22 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log(`API Response Data:`, JSON.stringify(data));
-    console.log(`Found ${data.result?.length || 0} addresses`);
+    
+    if (!data.result || !Array.isArray(data.result)) {
+      console.error('Unexpected API response format:', data);
+      return new Response(
+        JSON.stringify({ 
+          addresses: [],
+          error: 'No addresses found for this postcode'
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    console.log(`Found ${data.result.length} addresses`);
 
     // Transform Ideal Postcodes response format to match frontend expectations
     const transformedData = {
