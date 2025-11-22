@@ -14,16 +14,198 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      childminder_applications: {
+        Row: {
+          address_history: Json | null
+          convictions_details: string | null
+          created_at: string
+          criminal_convictions: string | null
+          current_address: Json | null
+          current_employment: string | null
+          date_of_birth: string | null
+          declaration_confirmed: boolean | null
+          declaration_date: string | null
+          declaration_signature: string | null
+          email: string | null
+          employment_history: Json | null
+          first_name: string | null
+          gender: string | null
+          health_conditions: string | null
+          health_details: string | null
+          id: string
+          last_name: string | null
+          middle_names: string | null
+          national_insurance_number: string | null
+          people_in_household: Json | null
+          people_regular_contact: Json | null
+          phone_home: string | null
+          phone_mobile: string | null
+          place_of_birth: string | null
+          premises_address: Json | null
+          premises_animal_details: string | null
+          premises_animals: string | null
+          premises_landlord_details: Json | null
+          premises_other_residents: Json | null
+          premises_ownership: string | null
+          previous_names: Json | null
+          previous_registration: string | null
+          qualifications: Json | null
+          registration_details: Json | null
+          safeguarding_concerns: string | null
+          safeguarding_details: string | null
+          service_age_range: Json | null
+          service_capacity: Json | null
+          service_hours: Json | null
+          service_local_authority: string | null
+          service_ofsted_number: string | null
+          service_ofsted_registered: string | null
+          service_type: string | null
+          status: string
+          title: string | null
+          training_courses: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address_history?: Json | null
+          convictions_details?: string | null
+          created_at?: string
+          criminal_convictions?: string | null
+          current_address?: Json | null
+          current_employment?: string | null
+          date_of_birth?: string | null
+          declaration_confirmed?: boolean | null
+          declaration_date?: string | null
+          declaration_signature?: string | null
+          email?: string | null
+          employment_history?: Json | null
+          first_name?: string | null
+          gender?: string | null
+          health_conditions?: string | null
+          health_details?: string | null
+          id?: string
+          last_name?: string | null
+          middle_names?: string | null
+          national_insurance_number?: string | null
+          people_in_household?: Json | null
+          people_regular_contact?: Json | null
+          phone_home?: string | null
+          phone_mobile?: string | null
+          place_of_birth?: string | null
+          premises_address?: Json | null
+          premises_animal_details?: string | null
+          premises_animals?: string | null
+          premises_landlord_details?: Json | null
+          premises_other_residents?: Json | null
+          premises_ownership?: string | null
+          previous_names?: Json | null
+          previous_registration?: string | null
+          qualifications?: Json | null
+          registration_details?: Json | null
+          safeguarding_concerns?: string | null
+          safeguarding_details?: string | null
+          service_age_range?: Json | null
+          service_capacity?: Json | null
+          service_hours?: Json | null
+          service_local_authority?: string | null
+          service_ofsted_number?: string | null
+          service_ofsted_registered?: string | null
+          service_type?: string | null
+          status?: string
+          title?: string | null
+          training_courses?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address_history?: Json | null
+          convictions_details?: string | null
+          created_at?: string
+          criminal_convictions?: string | null
+          current_address?: Json | null
+          current_employment?: string | null
+          date_of_birth?: string | null
+          declaration_confirmed?: boolean | null
+          declaration_date?: string | null
+          declaration_signature?: string | null
+          email?: string | null
+          employment_history?: Json | null
+          first_name?: string | null
+          gender?: string | null
+          health_conditions?: string | null
+          health_details?: string | null
+          id?: string
+          last_name?: string | null
+          middle_names?: string | null
+          national_insurance_number?: string | null
+          people_in_household?: Json | null
+          people_regular_contact?: Json | null
+          phone_home?: string | null
+          phone_mobile?: string | null
+          place_of_birth?: string | null
+          premises_address?: Json | null
+          premises_animal_details?: string | null
+          premises_animals?: string | null
+          premises_landlord_details?: Json | null
+          premises_other_residents?: Json | null
+          premises_ownership?: string | null
+          previous_names?: Json | null
+          previous_registration?: string | null
+          qualifications?: Json | null
+          registration_details?: Json | null
+          safeguarding_concerns?: string | null
+          safeguarding_details?: string | null
+          service_age_range?: Json | null
+          service_capacity?: Json | null
+          service_hours?: Json | null
+          service_local_authority?: string | null
+          service_ofsted_number?: string | null
+          service_ofsted_registered?: string | null
+          service_type?: string | null
+          status?: string
+          title?: string | null
+          training_courses?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +332,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
