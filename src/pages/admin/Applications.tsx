@@ -61,7 +61,7 @@ const AdminApplications = () => {
     }
 
     const { data: roles } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .select('role')
       .eq('user_id', session.user.id)
       .eq('role', 'admin')
@@ -83,13 +83,13 @@ const AdminApplications = () => {
   const fetchApplications = async () => {
     try {
       const { data, error } = await supabase
-        .from('childminder_applications')
+        .from('childminder_applications' as any)
         .select('id, first_name, last_name, email, status, created_at, service_type')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setApplications(data || []);
+      setApplications((data || []) as unknown as Application[]);
     } catch (error: any) {
       toast({
         title: "Error",

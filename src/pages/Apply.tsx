@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { ChildminderApplication } from "@/types/childminder";
 import { ProgressBar } from "@/components/apply/ProgressBar";
 import { ErrorSummary } from "@/components/apply/ErrorSummary";
@@ -128,7 +129,7 @@ const Apply = () => {
     }
   };
 
-  const onSubmit = form.handleSubmit((data) => {
+  const onSubmit = form.handleSubmit(async (data) => {
     // Final validation of all sections
     const allErrors: string[] = [];
     for (let section = 1; section <= totalSections; section++) {
@@ -145,12 +146,39 @@ const Apply = () => {
       return;
     }
 
-    // Calculate payment
-    const paymentAmount = data.ageGroups?.includes("0-5") || data.ageGroups?.includes("5-7") ? 200 : 100;
+    try {
+      // Calculate payment
+      const paymentAmount = data.ageGroups?.includes("0-5") || data.ageGroups?.includes("5-7") ? 200 : 100;
 
-    console.log("Application submitted:", { ...data, paymentAmount });
-    toast.success("Application submitted successfully! We'll review and be in touch soon.");
-    localStorage.removeItem("childminder-application");
+      // Submit to database
+      const { error } = await supabase
+        .from('childminder_applications' as any)
+        .insert({
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          date_of_birth: data.dob,
+          ni_number: data.niNumber,
+          service_type: data.ageGroups?.join(', '),
+          application_data: data,
+          status: 'pending',
+          payment_amount: paymentAmount
+        });
+
+      if (error) throw error;
+
+      toast.success("Application submitted successfully! We'll review and be in touch soon.");
+      localStorage.removeItem("childminder-application");
+      
+      // Redirect to home after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      toast.error("Failed to submit application. Please try again.");
+    }
   });
 
   const renderSection = () => {

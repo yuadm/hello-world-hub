@@ -39,7 +39,7 @@ const AdminDashboard = () => {
     }
 
     const { data: roles } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .select('role')
       .eq('user_id', session.user.id)
       .eq('role', 'admin')
@@ -61,22 +61,23 @@ const AdminDashboard = () => {
   const fetchMetrics = async () => {
     try {
       const { data: applications, error } = await supabase
-        .from('childminder_applications')
+        .from('childminder_applications' as any)
         .select('status, created_at');
 
       if (error) throw error;
 
+      const appData = (applications || []) as unknown as Array<{ status: string; created_at: string }>;
       const today = new Date().toDateString();
-      const todayApps = applications?.filter(
+      const todayApps = appData.filter(
         app => new Date(app.created_at).toDateString() === today
       ).length || 0;
 
-      const pending = applications?.filter(app => app.status === 'pending').length || 0;
-      const approved = applications?.filter(app => app.status === 'approved').length || 0;
-      const rejected = applications?.filter(app => app.status === 'rejected').length || 0;
+      const pending = appData.filter(app => app.status === 'pending').length || 0;
+      const approved = appData.filter(app => app.status === 'approved').length || 0;
+      const rejected = appData.filter(app => app.status === 'rejected').length || 0;
 
       setMetrics({
-        totalApplications: applications?.length || 0,
+        totalApplications: appData.length || 0,
         pendingApplications: pending,
         approvedApplications: approved,
         rejectedApplications: rejected,

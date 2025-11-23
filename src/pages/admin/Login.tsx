@@ -23,7 +23,7 @@ const AdminLogin = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       const { data: roles } = await supabase
-        .from('user_roles')
+        .from('user_roles' as any)
         .select('role')
         .eq('user_id', session.user.id)
         .eq('role', 'admin')
@@ -49,7 +49,7 @@ const AdminLogin = () => {
 
       if (authData.user) {
         const { data: roles, error: roleError } = await supabase
-          .from('user_roles')
+          .from('user_roles' as any)
           .select('role')
           .eq('user_id', authData.user.id)
           .eq('role', 'admin')
