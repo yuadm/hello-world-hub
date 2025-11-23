@@ -216,10 +216,15 @@ const Apply = () => {
           declaration_signature: data.signatureFullName,
           declaration_date: data.signatureDate,
           
+          // No user_id - allowing anonymous submissions
+          user_id: null,
           status: 'pending'
         } as any);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
 
       toast.success("Application submitted successfully! We'll review and be in touch soon.");
       localStorage.removeItem("childminder-application");
@@ -230,7 +235,7 @@ const Apply = () => {
       }, 2000);
     } catch (error: any) {
       console.error("Submission error:", error);
-      toast.error("Failed to submit application. Please try again.");
+      toast.error(`Failed to submit application: ${error.message || 'Please try again.'}`);
     }
   };
 
