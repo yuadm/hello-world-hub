@@ -275,6 +275,68 @@ export type Database = {
         }
         Relationships: []
       }
+      household_member_dbs_tracking: {
+        Row: {
+          application_id: string
+          created_at: string
+          date_of_birth: string
+          dbs_certificate_date: string | null
+          dbs_certificate_number: string | null
+          dbs_request_date: string | null
+          dbs_status: string
+          email: string | null
+          full_name: string
+          id: string
+          member_type: string
+          notes: string | null
+          relationship: string | null
+          turning_16_notification_sent: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          date_of_birth: string
+          dbs_certificate_date?: string | null
+          dbs_certificate_number?: string | null
+          dbs_request_date?: string | null
+          dbs_status?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          member_type: string
+          notes?: string | null
+          relationship?: string | null
+          turning_16_notification_sent?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          date_of_birth?: string
+          dbs_certificate_date?: string | null
+          dbs_certificate_number?: string | null
+          dbs_request_date?: string | null
+          dbs_status?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          member_type?: string
+          notes?: string | null
+          relationship?: string | null
+          turning_16_notification_sent?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_member_dbs_tracking_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "childminder_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -301,6 +363,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_age: { Args: { dob: string }; Returns: number }
+      get_members_approaching_16: {
+        Args: { days_ahead?: number }
+        Returns: {
+          application_id: string
+          date_of_birth: string
+          days_until_16: number
+          full_name: string
+          id: string
+          relationship: string
+          turning_16_notification_sent: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
