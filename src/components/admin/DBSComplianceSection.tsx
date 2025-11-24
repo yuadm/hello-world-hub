@@ -57,6 +57,7 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
 
   useEffect(() => {
     loadMembers();
+    syncMembers(); // Auto-sync when component mounts
   }, [applicationId]);
 
   const loadMembers = async () => {
@@ -381,17 +382,12 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
             Track and manage DBS checks for all household members
           </p>
         </div>
-        <div className="flex gap-2">
-          {selectedMemberIds.size > 0 && (
-            <Button onClick={handleSendBatchRequests} variant="default" size="sm">
-              <Send className="h-4 w-4 mr-2" />
-              Send {selectedMemberIds.size} Request{selectedMemberIds.size > 1 ? 's' : ''}
-            </Button>
-          )}
-          <Button onClick={syncMembers} disabled={syncing} variant="outline" size="sm">
-            {syncing ? "Syncing..." : "Sync from Application"}
+        {selectedMemberIds.size > 0 && (
+          <Button onClick={handleSendBatchRequests} variant="default" size="sm">
+            <Send className="h-4 w-4 mr-2" />
+            Send {selectedMemberIds.size} Request{selectedMemberIds.size > 1 ? 's' : ''}
           </Button>
-        </div>
+        )}
       </div>
 
       {/* Filters */}
