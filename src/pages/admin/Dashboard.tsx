@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DBSCertificateHealthCard } from "@/components/admin/DBSCertificateHealthCard";
 import { GlobalComplianceDashboard } from "@/components/admin/GlobalComplianceDashboard";
 import AdminLayout from "@/components/admin/AdminLayout";
 
@@ -131,6 +132,11 @@ const AdminDashboard = () => {
         <p className="text-muted-foreground">
           Here's an overview of childminder applications
         </p>
+      </div>
+
+      {/* DBS Certificate Health */}
+      <div className="mb-8">
+        <DBSCertificateHealthCard />
       </div>
 
       {/* Global DBS Compliance Dashboard */}
