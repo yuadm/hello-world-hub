@@ -30,7 +30,6 @@ import { Section7People } from "@/components/apply/Section7People";
 import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
 import { getValidatorForSection } from "@/lib/formValidation";
-import { DBSComplianceSection } from "@/components/admin/DBSComplianceSection";
 import AdminLayout from "@/components/admin/AdminLayout";
 
 interface DBApplication {
@@ -1184,16 +1183,6 @@ const ApplicationDetail = () => {
                   <p className="text-muted-foreground">No people connected to application</p>
                 )}
               </dl>
-            </section>
-
-            {/* Section 7b: DBS Compliance Tracking */}
-            <section className="border-l-4 border-blue-500 pl-6 bg-blue-50/50 dark:bg-blue-950/20 p-6 rounded-r">
-              <h2 className="text-2xl font-bold mb-4">DBS Compliance Tracking</h2>
-              <DBSComplianceSection
-                applicationId={id!}
-                applicantEmail={dbApplication?.email || ""}
-                applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
-              />
             </section>
 
             {/* Section 8: Suitability */}
