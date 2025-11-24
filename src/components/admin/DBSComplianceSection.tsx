@@ -311,68 +311,6 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
 
   return (
     <div className="space-y-6">
-      {/* Compliance Metrics Dashboard */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <ComplianceMetricsCard
-          title="Critical Alerts"
-          value={stats.criticalCount}
-          icon={AlertTriangle}
-          description="Overdue 30+ days or expired"
-          variant="critical"
-        />
-        <ComplianceMetricsCard
-          title="At Risk"
-          value={stats.atRiskCount}
-          icon={AlertCircle}
-          description="Needs attention soon"
-          variant="high"
-        />
-        <ComplianceMetricsCard
-          title="Pending"
-          value={stats.pendingCount}
-          icon={Clock}
-          description="Awaiting response"
-          variant="medium"
-        />
-        <ComplianceMetricsCard
-          title="Compliant"
-          value={stats.compliantCount}
-          icon={CheckCircle}
-          description="All up to date"
-          variant="success"
-        />
-      </div>
-
-      {/* Additional Metrics */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 p-4 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Calendar className="h-4 w-4 text-orange-600" />
-            <span className="text-sm font-medium text-orange-900 dark:text-orange-100">Expiring Soon</span>
-          </div>
-          <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">{stats.expiringSoonCount}</div>
-          <p className="text-xs text-orange-700 dark:text-orange-300">Certificates expiring in 90 days</p>
-        </div>
-        
-        <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 p-4 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-900 dark:text-purple-100">Turning 16 Soon</span>
-          </div>
-          <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">{approaching16.length}</div>
-          <p className="text-xs text-purple-700 dark:text-purple-300">Children approaching 16 in 90 days</p>
-        </div>
-        
-        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Completion Rate</span>
-          </div>
-          <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.percentage}%</div>
-          <p className="text-xs text-blue-700 dark:text-blue-300">{stats.completed} of {stats.total} completed</p>
-        </div>
-      </div>
-
       {/* Action Bar */}
       <div className="bg-muted/30 p-4 rounded-lg border flex justify-between items-center">
         <div>
