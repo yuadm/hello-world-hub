@@ -57,4 +57,19 @@ export interface EmployeeHouseholdMember {
   age_group_changed_at: string | null;
   created_at: string;
   updated_at: string;
+  dbs_request_date: string | null;
+  notes: string | null;
+  compliance_status: string;
+  risk_level: string;
+  last_contact_date: string | null;
+  reminder_count: number;
+  last_reminder_date: string | null;
+  reminder_history: any;
+  application_reference: string | null;
+  application_submitted: boolean;
+  response_date: string | null;
+  response_received: boolean;
+  follow_up_due_date: string | null;
+  expiry_reminder_sent: boolean;
+  turning_16_notification_sent: boolean;
 }

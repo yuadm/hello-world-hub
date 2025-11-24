@@ -278,50 +278,95 @@ export type Database = {
       employee_household_members: {
         Row: {
           age_group_changed_at: string | null
+          application_reference: string | null
+          application_submitted: boolean | null
+          compliance_status: string | null
           created_at: string | null
           date_of_birth: string
           dbs_certificate_date: string | null
           dbs_certificate_expiry_date: string | null
           dbs_certificate_number: string | null
+          dbs_request_date: string | null
           dbs_status: Database["public"]["Enums"]["dbs_status"] | null
           email: string | null
           employee_id: string
+          expiry_reminder_sent: boolean | null
+          follow_up_due_date: string | null
           full_name: string
           id: string
+          last_contact_date: string | null
+          last_reminder_date: string | null
           member_type: Database["public"]["Enums"]["member_type"]
+          notes: string | null
           relationship: string | null
+          reminder_count: number | null
+          reminder_history: Json | null
+          response_date: string | null
+          response_received: boolean | null
+          risk_level: string | null
+          turning_16_notification_sent: boolean | null
           updated_at: string | null
         }
         Insert: {
           age_group_changed_at?: string | null
+          application_reference?: string | null
+          application_submitted?: boolean | null
+          compliance_status?: string | null
           created_at?: string | null
           date_of_birth: string
           dbs_certificate_date?: string | null
           dbs_certificate_expiry_date?: string | null
           dbs_certificate_number?: string | null
+          dbs_request_date?: string | null
           dbs_status?: Database["public"]["Enums"]["dbs_status"] | null
           email?: string | null
           employee_id: string
+          expiry_reminder_sent?: boolean | null
+          follow_up_due_date?: string | null
           full_name: string
           id?: string
+          last_contact_date?: string | null
+          last_reminder_date?: string | null
           member_type: Database["public"]["Enums"]["member_type"]
+          notes?: string | null
           relationship?: string | null
+          reminder_count?: number | null
+          reminder_history?: Json | null
+          response_date?: string | null
+          response_received?: boolean | null
+          risk_level?: string | null
+          turning_16_notification_sent?: boolean | null
           updated_at?: string | null
         }
         Update: {
           age_group_changed_at?: string | null
+          application_reference?: string | null
+          application_submitted?: boolean | null
+          compliance_status?: string | null
           created_at?: string | null
           date_of_birth?: string
           dbs_certificate_date?: string | null
           dbs_certificate_expiry_date?: string | null
           dbs_certificate_number?: string | null
+          dbs_request_date?: string | null
           dbs_status?: Database["public"]["Enums"]["dbs_status"] | null
           email?: string | null
           employee_id?: string
+          expiry_reminder_sent?: boolean | null
+          follow_up_due_date?: string | null
           full_name?: string
           id?: string
+          last_contact_date?: string | null
+          last_reminder_date?: string | null
           member_type?: Database["public"]["Enums"]["member_type"]
+          notes?: string | null
           relationship?: string | null
+          reminder_count?: number | null
+          reminder_history?: Json | null
+          response_date?: string | null
+          response_received?: boolean | null
+          risk_level?: string | null
+          turning_16_notification_sent?: boolean | null
           updated_at?: string | null
         }
         Relationships: [

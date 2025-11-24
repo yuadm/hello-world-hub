@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Employee, EmployeeHouseholdMember } from "@/types/employee";
+import { EmployeeDBSComplianceSection } from "@/components/admin/EmployeeDBSComplianceSection";
 import { 
   calculateAge, 
   daysUntil16thBirthday, 
@@ -177,116 +178,17 @@ const AdminEmployeeDetail = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Household Members</CardTitle>
+            <CardTitle>DBS Compliance Tracking</CardTitle>
             <CardDescription>
-              Adults (16+) and Children (Under 16) living in the household
+              Track and manage DBS checks for all household members
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="adults">
-              <TabsList>
-                <TabsTrigger value="adults">Adults (16+) - {adults.length}</TabsTrigger>
-                <TabsTrigger value="children">Children (Under 16) - {children.length}</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="adults" className="mt-4">
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Age</TableHead>
-                        <TableHead>Relationship</TableHead>
-                        <TableHead>DBS Status</TableHead>
-                        <TableHead>DBS Expiry</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {adults.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            No adult household members
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        adults.map((member) => (
-                          <TableRow key={member.id}>
-                            <TableCell className="font-medium">{member.full_name}</TableCell>
-                            <TableCell>{calculateAge(member.date_of_birth)}</TableCell>
-                            <TableCell>{member.relationship || "N/A"}</TableCell>
-                            <TableCell>
-                              <Badge variant={getDBSStatusConfig(member.dbs_status).variant}>
-                                {getDBSStatusConfig(member.dbs_status).label}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {member.dbs_certificate_expiry_date
-                                ? format(new Date(member.dbs_certificate_expiry_date), "MMM dd, yyyy")
-                                : "N/A"}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="children" className="mt-4">
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Age</TableHead>
-                        <TableHead>Date of Birth</TableHead>
-                        <TableHead>Relationship</TableHead>
-                        <TableHead>Turns 16 On</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {children.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            No children household members
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        children.map((member) => {
-                          const age = calculateAge(member.date_of_birth);
-                          const daysUntil16 = daysUntil16thBirthday(member.date_of_birth);
-                          const turning16Soon = isTurning16Soon(member.date_of_birth);
-                          
-                          return (
-                            <TableRow key={member.id}>
-                              <TableCell className="font-medium">
-                                {member.full_name}
-                                {turning16Soon && (
-                                  <Badge variant="secondary" className="ml-2">
-                                    Turning 16 Soon
-                                  </Badge>
-                                )}
-                              </TableCell>
-                              <TableCell>{age}</TableCell>
-                              <TableCell>
-                                {format(new Date(member.date_of_birth), "MMM dd, yyyy")}
-                              </TableCell>
-                              <TableCell>{member.relationship || "N/A"}</TableCell>
-                              <TableCell>
-                                {format(get16thBirthdayDate(member.date_of_birth), "MMM dd, yyyy")}
-                                <span className="text-muted-foreground text-sm ml-2">
-                                  ({daysUntil16} days)
-                                </span>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <EmployeeDBSComplianceSection
+              employeeId={id!}
+              employeeEmail={employee.email}
+              employeeName={`${employee.first_name} ${employee.last_name}`}
+            />
           </CardContent>
         </Card>
       </div>
