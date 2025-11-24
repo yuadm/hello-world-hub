@@ -84,6 +84,29 @@ Deno.serve(async (req) => {
 
     console.log('Application fetched:', application.first_name, application.last_name);
 
+    // Check if employee already exists for this application
+    const { data: existingEmployee, error: checkError } = await supabase
+      .from('employees')
+      .select('id')
+      .eq('application_id', applicationId)
+      .maybeSingle();
+
+    if (existingEmployee) {
+      console.log('Employee already exists:', existingEmployee.id);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          alreadyExists: true,
+          employeeId: existingEmployee.id,
+          message: 'This application was already approved and converted to an employee record.'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
     // Helper function to calculate total capacity from service_capacity jsonb
     const calculateTotalCapacity = (serviceCapacity: any): number => {
       if (!serviceCapacity) return 0;

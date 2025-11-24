@@ -130,6 +130,7 @@ const ApplicationDetail = () => {
   const [errors, setErrors] = useState<string[]>([]);
   const [updating, setUpdating] = useState(false);
   const [dbApplication, setDbApplication] = useState<DBApplication | null>(null);
+  const [existingEmployeeId, setExistingEmployeeId] = useState<string | null>(null);
   const totalSections = 9;
 
   const form = useForm<Partial<ChildminderApplication>>({
@@ -275,6 +276,17 @@ const ApplicationDetail = () => {
 
       setDbApplication(data as unknown as DBApplication);
       
+      // Check if employee already exists for this application
+      const { data: employeeData } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('application_id', id)
+        .maybeSingle();
+
+      if (employeeData) {
+        setExistingEmployeeId(employeeData.id);
+      }
+      
       // Map database data to form format
       const formData = mapDBToForm(data as unknown as DBApplication);
       form.reset(formData);
@@ -303,20 +315,13 @@ const ApplicationDetail = () => {
 
         if (data?.success) {
           setDbApplication(prev => prev ? { ...prev, status: newStatus } : null);
-          toast({
-            title: "Application Approved",
-            description: `Applicant successfully converted to employee. ${data.householdMembersCount} household members transferred.`,
-          });
-
-          // Show link to employee record
-          setTimeout(() => {
-            const viewEmployeeButton = document.createElement('button');
-            viewEmployeeButton.textContent = 'View Employee Record';
-            viewEmployeeButton.className = 'mt-2';
-            viewEmployeeButton.onclick = () => navigate(`/admin/employees/${data.employeeId}`);
+          
+          if (data.alreadyExists) {
+            // Employee already exists
+            setExistingEmployeeId(data.employeeId);
             toast({
-              title: "View Employee",
-              description: `Click to view the new employee record.`,
+              title: "Already Approved",
+              description: data.message,
               action: (
                 <Button 
                   variant="outline" 
@@ -327,7 +332,23 @@ const ApplicationDetail = () => {
                 </Button>
               ),
             });
-          }, 1000);
+          } else {
+            // New employee created
+            setExistingEmployeeId(data.employeeId);
+            toast({
+              title: "Application Approved",
+              description: `Applicant successfully converted to employee. ${data.householdMembersCount} household members transferred.`,
+              action: (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(`/admin/employees/${data.employeeId}`)}
+                >
+                  View Employee
+                </Button>
+              ),
+            });
+          }
         } else {
           throw new Error('Failed to convert applicant to employee');
         }
