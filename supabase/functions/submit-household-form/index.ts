@@ -27,51 +27,97 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Validate token and get member/application info
-    const { data: memberData, error: memberError } = await supabase
-      .from("household_member_dbs_tracking")
+    // Try employee household members first
+    const { data: employeeData, error: employeeError } = await supabase
+      .from("employee_household_members")
       .select(`
         *,
-        childminder_applications!inner(
+        employees!inner(
           id, first_name, last_name, email
         )
       `)
       .eq("form_token", token)
-      .single();
+      .maybeSingle();
 
-    if (memberError || !memberData) {
-      throw new Error("Invalid form token");
-    }
+    let isEmployee = false;
+    let memberData: any;
+    let parentName: string;
+    let parentEmail: string;
 
-    // Update the form to submitted status
-    const { error: updateFormError } = await supabase
-      .from("household_member_forms")
-      .update({
-        status: "submitted",
-        submitted_at: new Date().toISOString()
-      })
-      .eq("form_token", token);
+    if (employeeData) {
+      // Handle employee household member
+      isEmployee = true;
+      memberData = employeeData;
+      parentName = `${employeeData.employees.first_name} ${employeeData.employees.last_name}`;
+      parentEmail = employeeData.employees.email;
 
-    if (updateFormError) {
-      console.error("Error updating form status:", updateFormError);
-      throw updateFormError;
-    }
+      // Update employee household member tracking
+      const { error: updateMemberError } = await supabase
+        .from("employee_household_members")
+        .update({
+          response_received: true,
+          response_date: new Date().toISOString(),
+          application_submitted: true,
+          dbs_status: formData.hasDBS === "Yes" ? "received" : "requested",
+          dbs_certificate_number: formData.hasDBS === "Yes" ? formData.dbsNumber : null
+        })
+        .eq("id", employeeData.id);
 
-    // Update member tracking
-    const { error: updateMemberError } = await supabase
-      .from("household_member_dbs_tracking")
-      .update({
-        response_received: true,
-        response_date: new Date().toISOString(),
-        application_submitted: true,
-        dbs_status: formData.hasDBS === "Yes" ? "received" : "requested",
-        dbs_certificate_number: formData.hasDBS === "Yes" ? formData.dbsNumber : null
-      })
-      .eq("id", memberData.id);
+      if (updateMemberError) {
+        console.error("Error updating employee member tracking:", updateMemberError);
+        throw updateMemberError;
+      }
+    } else {
+      // Try applicant household members
+      const { data: applicantData, error: applicantError } = await supabase
+        .from("household_member_dbs_tracking")
+        .select(`
+          *,
+          childminder_applications!inner(
+            id, first_name, last_name, email
+          )
+        `)
+        .eq("form_token", token)
+        .maybeSingle();
 
-    if (updateMemberError) {
-      console.error("Error updating member tracking:", updateMemberError);
-      throw updateMemberError;
+      if (!applicantData) {
+        throw new Error("Invalid form token");
+      }
+
+      memberData = applicantData;
+      parentName = `${applicantData.childminder_applications.first_name} ${applicantData.childminder_applications.last_name}`;
+      parentEmail = applicantData.childminder_applications.email;
+
+      // Update the form to submitted status
+      const { error: updateFormError } = await supabase
+        .from("household_member_forms")
+        .update({
+          status: "submitted",
+          submitted_at: new Date().toISOString()
+        })
+        .eq("form_token", token);
+
+      if (updateFormError) {
+        console.error("Error updating form status:", updateFormError);
+        throw updateFormError;
+      }
+
+      // Update member tracking
+      const { error: updateMemberError } = await supabase
+        .from("household_member_dbs_tracking")
+        .update({
+          response_received: true,
+          response_date: new Date().toISOString(),
+          application_submitted: true,
+          dbs_status: formData.hasDBS === "Yes" ? "received" : "requested",
+          dbs_certificate_number: formData.hasDBS === "Yes" ? formData.dbsNumber : null
+        })
+        .eq("id", applicantData.id);
+
+      if (updateMemberError) {
+        console.error("Error updating member tracking:", updateMemberError);
+        throw updateMemberError;
+      }
     }
 
     // Send confirmation email to household member
@@ -95,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p><strong>What happens next:</strong></p>
           <ul>
-            <li>We have notified ${memberData.childminder_applications.first_name} ${memberData.childminder_applications.last_name} that you have completed the form</li>
+            <li>We have notified ${parentName} that you have completed the form</li>
             <li>Our team will review your submission</li>
             ${formData.hasDBS === "No" ? "<li>We will initiate your DBS check and contact you with further instructions</li>" : ""}
             <li>If we need any additional information, we will contact you</li>
@@ -112,8 +158,8 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to send member confirmation email");
     }
 
-    // Send notification email to applicant
-    const applicantEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+    // Send notification email to parent (applicant or employee)
+    const parentEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "api-key": brevoApiKey!,
@@ -125,13 +171,13 @@ const handler = async (req: Request): Promise<Response> => {
           email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@yourdomain.com"
         },
         to: [{ 
-          email: memberData.childminder_applications.email, 
-          name: `${memberData.childminder_applications.first_name} ${memberData.childminder_applications.last_name}`
+          email: parentEmail, 
+          name: parentName
         }],
         subject: "Household Member Form Completed",
         htmlContent: `
           <h1>Household Member Form Submitted</h1>
-          <p>Dear ${memberData.childminder_applications.first_name} ${memberData.childminder_applications.last_name},</p>
+          <p>Dear ${parentName},</p>
           <p><strong>${memberData.full_name}</strong> has successfully completed and submitted their CMA-H2 Suitability Check form.</p>
           
           <p><strong>Next steps:</strong></p>
@@ -142,15 +188,15 @@ const handler = async (req: Request): Promise<Response> => {
             <li>This brings you one step closer to completing your registration</li>
           </ul>
 
-          <p>You can view the status of all household members in your admin portal.</p>
+          <p>You can view the status of all household members in your ${isEmployee ? 'employee' : 'admin'} portal.</p>
 
           <p>Best regards,<br>Childminder Registration Team</p>
         `,
       }),
     });
 
-    if (!applicantEmailResponse.ok) {
-      console.error("Failed to send applicant notification email");
+    if (!parentEmailResponse.ok) {
+      console.error("Failed to send parent notification email");
     }
 
     return new Response(JSON.stringify({ success: true }), {

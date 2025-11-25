@@ -95,76 +95,115 @@ export default function HouseholdForm() {
 
   const loadFormData = async () => {
     try {
-      // Load connection info and existing form data
-      const { data: memberData, error: memberError } = await supabase
-        .from("household_member_dbs_tracking")
+      // Try to load from employee household members first
+      const { data: employeeData, error: employeeError } = await supabase
+        .from("employee_household_members")
         .select(`
           *,
-          childminder_applications!inner(
-            id, first_name, last_name, current_address
+          employees!inner(
+            id, first_name, last_name, address_line_1, town_city, postcode
           )
         `)
         .eq("form_token", token)
-        .single();
-
-      if (memberError) throw memberError;
-
-      setConnectionInfo({
-        applicantName: `${memberData.childminder_applications.first_name} ${memberData.childminder_applications.last_name}`,
-        applicantAddress: memberData.childminder_applications.current_address,
-        memberName: memberData.full_name,
-        memberId: memberData.id,
-        applicationId: memberData.application_id
-      });
-
-      // Load existing form submission if any
-      const { data: existingForm } = await supabase
-        .from("household_member_forms")
-        .select("*")
-        .eq("form_token", token)
         .maybeSingle();
 
-      if (existingForm && existingForm.status !== "submitted") {
-        // Restore draft
-        setFormData({
-          title: existingForm.title || "",
-          firstName: existingForm.first_name || "",
-          middleNames: existingForm.middle_names || "",
-          lastName: existingForm.last_name || "",
-          otherNames: Array.isArray(existingForm.previous_names) && existingForm.previous_names.length > 0 ? "Yes" : "No",
-          previousNames: (existingForm.previous_names as any[]) || [],
-          dob: existingForm.date_of_birth || "",
-          birthTown: existingForm.birth_town || "",
-          sex: existingForm.sex || "",
-          niNumber: existingForm.ni_number || "",
-          homeAddressLine1: (existingForm.current_address as any)?.line1 || "",
-          homeAddressLine2: (existingForm.current_address as any)?.line2 || "",
-          homeTown: (existingForm.current_address as any)?.town || "",
-          homePostcode: (existingForm.current_address as any)?.postcode || "",
-          homeMoveIn: (existingForm.current_address as any)?.moveIn || "",
-          addressHistory: (existingForm.address_history as any[]) || [],
-          livedOutsideUK: existingForm.lived_outside_uk || "No",
-          outsideUKDetails: existingForm.outside_uk_details || "",
-          prevReg: existingForm.previous_registration || "No",
-          prevRegInfo: (existingForm.previous_registration_details as string) || "",
-          hasDBS: existingForm.has_dbs || "No",
-          dbsNumber: existingForm.dbs_number || "",
-          dbsUpdate: existingForm.dbs_update_service || "",
-          offenceHistory: existingForm.criminal_history || "No",
-          offenceDetails: existingForm.criminal_history_details || "",
-          disqualified: existingForm.disqualified || "No",
-          socialServices: existingForm.social_services || "No",
-          socialServicesInfo: existingForm.social_services_details || "",
-          healthCondition: existingForm.health_conditions || "No",
-          healthConditionDetails: existingForm.health_conditions_details || "",
-          smoker: existingForm.smoker || "",
-          consentChecks: existingForm.consent_checks || false,
-          declarationTruth: existingForm.declaration_truth || false,
-          declarationNotify: existingForm.declaration_notify || false,
-          signatureFullName: existingForm.signature_name || "",
-          signatureDate: existingForm.signature_date || new Date().toISOString().split('T')[0]
+      let memberData: any;
+      let isEmployee = false;
+
+      if (employeeData) {
+        // Found in employee table
+        isEmployee = true;
+        memberData = employeeData;
+        setConnectionInfo({
+          applicantName: `${memberData.employees.first_name} ${memberData.employees.last_name}`,
+          applicantAddress: {
+            line1: memberData.employees.address_line_1,
+            town: memberData.employees.town_city,
+            postcode: memberData.employees.postcode
+          },
+          memberName: memberData.full_name,
+          memberId: memberData.id,
+          applicationId: memberData.employee_id,
+          isEmployee: true
         });
-        toast.success("Draft form loaded");
+      } else {
+        // Try applicant household members table
+        const { data: applicantData, error: applicantError } = await supabase
+          .from("household_member_dbs_tracking")
+          .select(`
+            *,
+            childminder_applications!inner(
+              id, first_name, last_name, current_address
+            )
+          `)
+          .eq("form_token", token)
+          .maybeSingle();
+
+        if (!applicantData) {
+          throw new Error("Form token not found or expired");
+        }
+
+        memberData = applicantData;
+        setConnectionInfo({
+          applicantName: `${memberData.childminder_applications.first_name} ${memberData.childminder_applications.last_name}`,
+          applicantAddress: memberData.childminder_applications.current_address,
+          memberName: memberData.full_name,
+          memberId: memberData.id,
+          applicationId: memberData.application_id,
+          isEmployee: false
+        });
+      }
+
+      // Load existing form submission if any (only for applicants)
+      if (!isEmployee) {
+        const { data: existingForm } = await supabase
+          .from("household_member_forms")
+          .select("*")
+          .eq("form_token", token)
+          .maybeSingle();
+
+        if (existingForm && existingForm.status !== "submitted") {
+          // Restore draft
+          setFormData({
+            title: existingForm.title || "",
+            firstName: existingForm.first_name || "",
+            middleNames: existingForm.middle_names || "",
+            lastName: existingForm.last_name || "",
+            otherNames: Array.isArray(existingForm.previous_names) && existingForm.previous_names.length > 0 ? "Yes" : "No",
+            previousNames: (existingForm.previous_names as any[]) || [],
+            dob: existingForm.date_of_birth || "",
+            birthTown: existingForm.birth_town || "",
+            sex: existingForm.sex || "",
+            niNumber: existingForm.ni_number || "",
+            homeAddressLine1: (existingForm.current_address as any)?.line1 || "",
+            homeAddressLine2: (existingForm.current_address as any)?.line2 || "",
+            homeTown: (existingForm.current_address as any)?.town || "",
+            homePostcode: (existingForm.current_address as any)?.postcode || "",
+            homeMoveIn: (existingForm.current_address as any)?.moveIn || "",
+            addressHistory: (existingForm.address_history as any[]) || [],
+            livedOutsideUK: existingForm.lived_outside_uk || "No",
+            outsideUKDetails: existingForm.outside_uk_details || "",
+            prevReg: existingForm.previous_registration || "No",
+            prevRegInfo: (existingForm.previous_registration_details as string) || "",
+            hasDBS: existingForm.has_dbs || "No",
+            dbsNumber: existingForm.dbs_number || "",
+            dbsUpdate: existingForm.dbs_update_service || "",
+            offenceHistory: existingForm.criminal_history || "No",
+            offenceDetails: existingForm.criminal_history_details || "",
+            disqualified: existingForm.disqualified || "No",
+            socialServices: existingForm.social_services || "No",
+            socialServicesInfo: existingForm.social_services_details || "",
+            healthCondition: existingForm.health_conditions || "No",
+            healthConditionDetails: existingForm.health_conditions_details || "",
+            smoker: existingForm.smoker || "",
+            consentChecks: existingForm.consent_checks || false,
+            declarationTruth: existingForm.declaration_truth || false,
+            declarationNotify: existingForm.declaration_notify || false,
+            signatureFullName: existingForm.signature_name || "",
+            signatureDate: existingForm.signature_date || new Date().toISOString().split('T')[0]
+          });
+          toast.success("Draft form loaded");
+        }
       }
 
       setLoading(false);
@@ -236,6 +275,11 @@ export default function HouseholdForm() {
 
   const saveDraft = async () => {
     if (!token || !connectionInfo) return;
+
+    // Only save drafts for applicants, not employees
+    if (connectionInfo.isEmployee) {
+      return;
+    }
 
     try {
       const payload = {
