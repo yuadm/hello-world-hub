@@ -84,12 +84,17 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
 
       if (error) throw error;
       
-      const membersWithFormData = (data || []).map(member => ({
-        ...member,
-        form_data: Array.isArray(member.household_member_forms) && member.household_member_forms.length > 0 
-          ? member.household_member_forms[0] 
-          : null
-      }));
+      const membersWithFormData = (data || []).map(member => {
+        const forms = member.household_member_forms || [];
+        // Prioritize submitted forms over drafts
+        const submittedForm = forms.find((f: any) => f.status === 'submitted');
+        const latestForm = submittedForm || (forms.length > 0 ? forms[0] : null);
+        
+        return {
+          ...member,
+          form_data: latestForm
+        };
+      });
       
       setMembers(membersWithFormData);
     } catch (error: any) {
