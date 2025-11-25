@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { sendEmail, createEmailTemplate } from "../_shared/email-service.ts";
 
-const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -112,88 +112,74 @@ const handler = async (req: Request): Promise<Response> => {
     const formUrl = `https://childminderpro.vercel.app/household-form?token=${formToken}`;
 
     // Send email to household member
-    const memberEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": brevoApiKey!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { 
-          name: "Childminder Registration", 
-          email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@yourdomain.com"
-        },
-        to: [{ email: memberEmail, name: memberData.full_name }],
-        subject: "Complete Your CMA-H2 Suitability Check Form",
-        htmlContent: `
-          <h1>Complete Your Suitability Check Form</h1>
-          <p>Dear ${memberData.full_name},</p>
-          <p>${applicantName} ${isEmployee ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As you are a member of their household, we need to complete suitability checks on all adults.</p>
-          
-          <p><strong>Please complete the CMA-H2 form using the link below:</strong></p>
-          <p><a href="${formUrl}" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">Complete Form</a></p>
-          
-          <p>This form will ask for:</p>
-          <ul>
-            <li>Personal details and identification</li>
-            <li>Address history</li>
-            <li>DBS certificate information (if applicable)</li>
-            <li>Vetting and suitability information</li>
-            <li>Health and lifestyle declarations</li>
-          </ul>
+    const memberEmailContent = `
+      <p>Dear ${memberData.full_name},</p>
+      <p>${applicantName} ${isEmployee ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As you are a member of their household, we need to complete suitability checks on all adults.</p>
+      
+      <p><strong>Please complete the CMA-H2 form using the link below:</strong></p>
+      <p><a href="${formUrl}" class="button">Complete Form</a></p>
+      
+      <p>This form will ask for:</p>
+      <ul>
+        <li>Personal details and identification</li>
+        <li>Address history</li>
+        <li>DBS certificate information (if applicable)</li>
+        <li>Vetting and suitability information</li>
+        <li>Health and lifestyle declarations</li>
+      </ul>
 
-          <p><strong>Important:</strong> This link is unique to you. Please complete the form as soon as possible to avoid delays in the registration process.</p>
+      <p><strong>Important:</strong> This link is unique to you. Please complete the form as soon as possible to avoid delays in the registration process.</p>
 
-          <p>If you have any questions, please contact the registration team.</p>
+      <p>If you have any questions, please contact the registration team.</p>
+    `;
 
-          <p>Best regards,<br>Childminder Registration Team</p>
-        `,
-      }),
+    const memberHtmlContent = createEmailTemplate(
+      'Complete Your CMA-H2 Suitability Check Form',
+      memberEmailContent
+    );
+
+    const memberEmailResult = await sendEmail({
+      to: memberEmail,
+      toName: memberData.full_name,
+      subject: 'Complete Your CMA-H2 Suitability Check Form',
+      htmlContent: memberHtmlContent,
     });
 
-    if (!memberEmailResponse.ok) {
-      const errorText = await memberEmailResponse.text();
-      console.error("Brevo API error status:", memberEmailResponse.status);
-      console.error("Brevo API error response:", errorText);
-      throw new Error(`Failed to send email to household member: ${errorText}`);
+    if (!memberEmailResult.success) {
+      throw new Error(`Failed to send email to household member: ${memberEmailResult.error}`);
     }
 
     // Send notification to applicant
-    const applicantEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": brevoApiKey!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { 
-          name: "Childminder Registration", 
-          email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@yourdomain.com"
-        },
-        to: [{ email: applicantEmail, name: applicantName }],
-        subject: "Household Member Form Sent",
-        htmlContent: `
-          <h1>Form Sent to Household Member</h1>
-          <p>Dear ${applicantName},</p>
-          <p>We have sent the CMA-H2 Suitability Check form to <strong>${memberData.full_name}</strong> at ${memberEmail}.</p>
-          
-          <p><strong>Next steps:</strong></p>
-          <ul>
-            <li>Please remind ${memberData.full_name} to check their email and complete the form</li>
-            <li>They should complete the form as soon as possible</li>
-            <li>We will notify you once they have submitted the form</li>
-            <li>You can track progress in your admin portal</li>
-          </ul>
+    const applicantEmailContent = `
+      <p>Dear ${applicantName},</p>
+      <p>We have sent the CMA-H2 Suitability Check form to <strong>${memberData.full_name}</strong> at ${memberEmail}.</p>
+      
+      <p><strong>Next steps:</strong></p>
+      <ul>
+        <li>Please remind ${memberData.full_name} to check their email and complete the form</li>
+        <li>They should complete the form as soon as possible</li>
+        <li>We will notify you once they have submitted the form</li>
+        <li>You can track progress in your admin portal</li>
+      </ul>
 
-          <p>If they don't receive the email, please check their spam folder or contact us to resend it.</p>
+      <p>If they don't receive the email, please check their spam folder or contact us to resend it.</p>
+    `;
 
-          <p>Best regards,<br>Childminder Registration Team</p>
-        `,
-      }),
+    const applicantHtmlContent = createEmailTemplate(
+      'Household Member Form Sent',
+      applicantEmailContent
+    );
+
+    const applicantEmailResult = await sendEmail({
+      to: applicantEmail,
+      toName: applicantName,
+      subject: 'Household Member Form Sent',
+      htmlContent: applicantHtmlContent,
     });
 
-    if (!applicantEmailResponse.ok) {
-      console.error("Failed to send applicant notification email");
+    if (!applicantEmailResult.success) {
+      console.error("Failed to send applicant notification:", applicantEmailResult.error);
+      // Don't throw - this is a notification, not critical
     }
 
     return new Response(JSON.stringify({ 

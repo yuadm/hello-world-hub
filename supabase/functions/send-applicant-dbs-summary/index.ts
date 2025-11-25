@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { sendEmail, createEmailTemplate } from "../_shared/email-service.ts";
 
-const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -88,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
       };
     }) || [];
 
-    // Build requested members list HTML
+    // Build requested members list
     const requestedMembersList = requestedMembers?.map(member => 
       `<li><strong>${member.full_name}</strong>${member.relationship ? ` (${member.relationship})` : ''}</li>`
     ).join('') || '';
@@ -105,61 +105,56 @@ const handler = async (req: Request): Promise<Response> => {
       <p>ℹ️ <em>You will receive an automatic reminder when each child turns 16 to ensure they apply for their DBS check.</em></p>
     ` : '';
 
-    // Send email via Brevo
-    const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": brevoApiKey!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { 
-          name: "Childminder Registration", 
-          email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@yourdomain.com"
-        },
-        to: [{ email: applicantEmail, name: applicantName }],
-        subject: "DBS Requests Sent - Action Required",
-        htmlContent: `
-          <h1>DBS Requests Sent - Action Required</h1>
-          <p>Dear ${applicantName},</p>
+    // Create email content
+    const emailContent = `
+      <p>Dear ${applicantName},</p>
 
-          <p>We have sent DBS (Disclosure and Barring Service) check requests to the following household members:</p>
+      <p>We have sent DBS (Disclosure and Barring Service) check requests to the following household members:</p>
 
-          <ul>
-            ${requestedMembersList}
-          </ul>
+      <ul>
+        ${requestedMembersList}
+      </ul>
 
-          <p>These individuals have been contacted directly and asked to apply for an Enhanced DBS check. <strong>Please follow up with them to ensure they complete their applications as soon as possible.</strong></p>
+      <p>These individuals have been contacted directly and asked to apply for an Enhanced DBS check. <strong>Please follow up with them to ensure they complete their applications as soon as possible.</strong></p>
 
-          ${childrenListHtml}
+      ${childrenListHtml}
 
-          <h2>What You Need to Do:</h2>
-          <ol>
-            <li>Follow up with the household members listed above</li>
-            <li>Ensure they complete their DBS applications within 2-4 weeks</li>
-            <li>Remind them to keep their DBS certificate numbers safe</li>
-            <li>Contact the registration team if you need assistance</li>
-          </ol>
+      <h2>What You Need to Do:</h2>
+      <ol>
+        <li>Follow up with the household members listed above</li>
+        <li>Ensure they complete their DBS applications within 2-4 weeks</li>
+        <li>Remind them to keep their DBS certificate numbers safe</li>
+        <li>Contact the registration team if you need assistance</li>
+      </ol>
 
-          <p><strong>Application Reference:</strong> ${applicationId}</p>
+      <p><strong>Application Reference:</strong> ${applicationId}</p>
 
-          <p>If you have any questions about this requirement, please contact the registration team.</p>
+      <p>If you have any questions about this requirement, please contact the registration team.</p>
+    `;
 
-          <p>Best regards,<br>Childminder Registration Team</p>
-        `,
-      }),
+    const htmlContent = createEmailTemplate(
+      'DBS Requests Sent - Action Required',
+      emailContent
+    );
+
+    // Send email with retry logic
+    const emailResult = await sendEmail({
+      to: applicantEmail,
+      toName: applicantName,
+      subject: 'DBS Requests Sent - Action Required',
+      htmlContent,
     });
 
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      console.error("Brevo email error:", errorData);
-      throw new Error(`Email failed: ${JSON.stringify(errorData)}`);
+    if (!emailResult.success) {
+      throw new Error(emailResult.error || 'Failed to send summary email');
     }
 
-    const emailData = await emailResponse.json();
-    console.log("Applicant summary email sent successfully:", emailData);
+    console.log("Applicant summary email sent successfully, messageId:", emailResult.messageId);
 
-    return new Response(JSON.stringify({ success: true, emailData }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      messageId: emailResult.messageId 
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
