@@ -504,8 +504,8 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
       {adults.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold mb-4">Adults & Assistants (16+)</h3>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
+          <div className="border rounded-lg overflow-x-auto">
+            <table className="w-full min-w-[1200px]">
               <thead className="bg-muted">
                 <tr>
                   <th className="w-12 p-3"></th>
@@ -637,8 +637,8 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
       {children.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold mb-4">Children in Household</h3>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
+          <div className="border rounded-lg overflow-x-auto">
+            <table className="w-full min-w-[800px]">
               <thead className="bg-muted">
                 <tr>
                   <th className="text-left p-3 font-medium">Name</th>
