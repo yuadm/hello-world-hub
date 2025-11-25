@@ -122,9 +122,27 @@ export function RequestDBSModal({
         throw new Error("Failed to send DBS request email");
       }
 
+      // Step 4: Send summary email to applicant
+      const { error: summaryError } = await supabase.functions.invoke(
+        "send-applicant-dbs-summary",
+        {
+          body: {
+            applicationId,
+            applicantEmail: data.applicantEmail,
+            applicantName,
+            requestedMemberIds: [memberId],
+          },
+        }
+      );
+
+      if (summaryError) {
+        console.error("Error sending applicant summary email:", summaryError);
+        // Don't throw - member request was sent successfully
+      }
+
       toast({
         title: "DBS Request Sent",
-        description: `DBS request email sent to ${data.memberEmail}`,
+        description: `DBS request sent to ${memberName}. Applicant notified to follow up.`,
       });
 
       onSuccess();
