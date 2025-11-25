@@ -529,6 +529,7 @@ export type Database = {
           email: string | null
           expiry_reminder_sent: boolean | null
           follow_up_due_date: string | null
+          form_token: string | null
           full_name: string
           id: string
           last_contact_date: string | null
@@ -559,6 +560,7 @@ export type Database = {
           email?: string | null
           expiry_reminder_sent?: boolean | null
           follow_up_due_date?: string | null
+          form_token?: string | null
           full_name: string
           id?: string
           last_contact_date?: string | null
@@ -589,6 +591,7 @@ export type Database = {
           email?: string | null
           expiry_reminder_sent?: boolean | null
           follow_up_due_date?: string | null
+          form_token?: string | null
           full_name?: string
           id?: string
           last_contact_date?: string | null
@@ -610,6 +613,147 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "childminder_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      household_member_forms: {
+        Row: {
+          address_history: Json | null
+          application_id: string
+          birth_town: string | null
+          consent_checks: boolean | null
+          created_at: string | null
+          criminal_history: string | null
+          criminal_history_details: string | null
+          current_address: Json | null
+          date_of_birth: string | null
+          dbs_number: string | null
+          dbs_update_service: string | null
+          declaration_notify: boolean | null
+          declaration_truth: boolean | null
+          disqualified: string | null
+          first_name: string | null
+          form_token: string
+          has_dbs: string | null
+          health_conditions: string | null
+          health_conditions_details: string | null
+          id: string
+          last_name: string | null
+          lived_outside_uk: string | null
+          member_id: string
+          middle_names: string | null
+          ni_number: string | null
+          outside_uk_details: string | null
+          previous_names: Json | null
+          previous_registration: string | null
+          previous_registration_details: Json | null
+          sex: string | null
+          signature_date: string | null
+          signature_name: string | null
+          smoker: string | null
+          social_services: string | null
+          social_services_details: string | null
+          status: string
+          submitted_at: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_history?: Json | null
+          application_id: string
+          birth_town?: string | null
+          consent_checks?: boolean | null
+          created_at?: string | null
+          criminal_history?: string | null
+          criminal_history_details?: string | null
+          current_address?: Json | null
+          date_of_birth?: string | null
+          dbs_number?: string | null
+          dbs_update_service?: string | null
+          declaration_notify?: boolean | null
+          declaration_truth?: boolean | null
+          disqualified?: string | null
+          first_name?: string | null
+          form_token: string
+          has_dbs?: string | null
+          health_conditions?: string | null
+          health_conditions_details?: string | null
+          id?: string
+          last_name?: string | null
+          lived_outside_uk?: string | null
+          member_id: string
+          middle_names?: string | null
+          ni_number?: string | null
+          outside_uk_details?: string | null
+          previous_names?: Json | null
+          previous_registration?: string | null
+          previous_registration_details?: Json | null
+          sex?: string | null
+          signature_date?: string | null
+          signature_name?: string | null
+          smoker?: string | null
+          social_services?: string | null
+          social_services_details?: string | null
+          status?: string
+          submitted_at?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_history?: Json | null
+          application_id?: string
+          birth_town?: string | null
+          consent_checks?: boolean | null
+          created_at?: string | null
+          criminal_history?: string | null
+          criminal_history_details?: string | null
+          current_address?: Json | null
+          date_of_birth?: string | null
+          dbs_number?: string | null
+          dbs_update_service?: string | null
+          declaration_notify?: boolean | null
+          declaration_truth?: boolean | null
+          disqualified?: string | null
+          first_name?: string | null
+          form_token?: string
+          has_dbs?: string | null
+          health_conditions?: string | null
+          health_conditions_details?: string | null
+          id?: string
+          last_name?: string | null
+          lived_outside_uk?: string | null
+          member_id?: string
+          middle_names?: string | null
+          ni_number?: string | null
+          outside_uk_details?: string | null
+          previous_names?: Json | null
+          previous_registration?: string | null
+          previous_registration_details?: Json | null
+          sex?: string | null
+          signature_date?: string | null
+          signature_name?: string | null
+          smoker?: string | null
+          social_services?: string | null
+          social_services_details?: string | null
+          status?: string
+          submitted_at?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_member_forms_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "childminder_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_member_forms_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "household_member_dbs_tracking"
             referencedColumns: ["id"]
           },
         ]

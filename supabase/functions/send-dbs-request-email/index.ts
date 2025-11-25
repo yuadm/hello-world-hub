@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const appUrl = Deno.env.get("APP_URL") || "https://your-app.lovable.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,6 +31,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Generate a secure token for the household form
+    const formToken = crypto.randomUUID() + "-" + Date.now().toString(36);
+    
+    // Update member with form token
+    const { error: tokenError } = await supabase
+      .from("household_member_dbs_tracking")
+      .update({ form_token: formToken })
+      .eq("id", memberId);
+
+    if (tokenError) {
+      console.error("Error updating form token:", tokenError);
+      throw tokenError;
+    }
+
+    const formUrl = `${appUrl}/household-form?token=${formToken}`;
+
     // Send email via Brevo
     const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -45,28 +62,29 @@ const handler = async (req: Request): Promise<Response> => {
         to: [{ email: memberEmail, name: memberName }],
         subject: "DBS Check Required - Childminder Registration",
         htmlContent: `
-          <h1>DBS Check Required</h1>
+          <h1>DBS Check & Suitability Form Required</h1>
           <p>Dear ${memberName},</p>
-          <p>As part of the childminder registration process for <strong>${applicantName}</strong>, you are required to complete a DBS (Disclosure and Barring Service) check.</p>
+          <p>As part of the childminder registration process for <strong>${applicantName}</strong>, you are required to complete a suitability check and provide DBS information.</p>
           
           <h2>What You Need to Do:</h2>
           <ol>
-            <li>Apply for an Enhanced DBS check with barred list check for working with children</li>
-            <li>You can apply online at: <a href="https://www.gov.uk/request-copy-criminal-record">https://www.gov.uk/request-copy-criminal-record</a></li>
-            <li>Keep your DBS certificate number safe - you'll need to provide it to the registration team</li>
+            <li><strong>Complete the online suitability form:</strong> <a href="${formUrl}" style="color: #1d70b8; font-weight: bold;">Click here to access your form</a></li>
+            <li>The form will ask for your personal details, address history, and vetting information</li>
+            <li>If you don't already have an Enhanced DBS certificate for child workforce, we will initiate the process for you</li>
           </ol>
 
           <h2>Important Information:</h2>
           <ul>
-            <li>The DBS check must be an Enhanced check</li>
+            <li>The form must be completed within 14 days</li>
+            <li>You can save your progress and return to complete it later</li>
+            <li>The DBS check must be an Enhanced check with barred list</li>
             <li>Processing typically takes 2-4 weeks</li>
-            <li>You may need to pay a fee (check current rates)</li>
-            <li>You'll need proof of identity and address</li>
           </ul>
 
+          <p><strong>Your secure form link:</strong> <a href="${formUrl}">${formUrl}</a></p>
           <p><strong>Application Reference:</strong> ${applicationId}</p>
 
-          <p>If you have any questions about this requirement, please contact the registration team.</p>
+          <p>If you have any questions, please contact the registration team.</p>
 
           <p>Best regards,<br>Childminder Registration Team</p>
         `,
@@ -81,6 +99,48 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailData = await emailResponse.json();
     console.log("Email sent successfully:", emailData);
+
+    // Send confirmation email to applicant
+    const applicantEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": brevoApiKey!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: { 
+          name: "Childminder Registration", 
+          email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@yourdomain.com"
+        },
+        to: [{ email: applicantName }],
+        subject: "Suitability Form Sent to Household Member",
+        htmlContent: `
+          <h1>Suitability Form Sent</h1>
+          <p>Dear ${applicantName},</p>
+          <p>We have sent the CMA-H2 Suitability Check form to <strong>${memberName}</strong> at ${memberEmail}.</p>
+          
+          <p>They will need to complete this form as part of your childminder registration application.</p>
+          
+          <p><strong>What happens next:</strong></p>
+          <ul>
+            <li>${memberName} will receive an email with a secure link to their form</li>
+            <li>They should complete the form within 14 days</li>
+            <li>You will be notified once they have submitted it</li>
+            <li>We may need to conduct a DBS check if they don't already have one</li>
+          </ul>
+
+          <p><strong>Application Reference:</strong> ${applicationId}</p>
+
+          <p>If you have any questions, please contact the registration team.</p>
+
+          <p>Best regards,<br>Childminder Registration Team</p>
+        `,
+      }),
+    });
+
+    if (!applicantEmailResponse.ok) {
+      console.error("Failed to send applicant confirmation email");
+    }
 
     // Get current member data to track reminder history
     const { data: memberData } = await supabase

@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Join from "./pages/Join";
 import Apply from "./pages/Apply";
 import NotFound from "./pages/NotFound";
+import HouseholdForm from "./pages/HouseholdForm";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminApplications from "./pages/admin/Applications";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/join" element={<Join />} />
           <Route path="/apply" element={<Apply />} />
+          <Route path="/household-form" element={<HouseholdForm />} />
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
