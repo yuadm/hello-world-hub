@@ -3,14 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, AlertCircle, CheckCircle, Clock, FileText, Send, AlertTriangle, Calendar, TrendingUp } from "lucide-react";
+import { Mail, AlertCircle, CheckCircle, Clock, FileText, Send, AlertTriangle, Calendar, TrendingUp, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RecordCertificateModal } from "./RecordCertificateModal";
 import { RequestDBSModal } from "./RequestDBSModal";
 import { BatchDBSRequestModal } from "./BatchDBSRequestModal";
+import { SendHouseholdFormModal } from "./SendHouseholdFormModal";
 import { ComplianceMetricsCard } from "./ComplianceMetricsCard";
 import { ComplianceFilters } from "./ComplianceFilters";
 import { format, differenceInYears, addYears, differenceInDays } from "date-fns";
+import { pdf } from "@react-pdf/renderer";
+import { HouseholdFormPDF } from "./HouseholdFormPDF";
 
 interface DBSMember {
   id: string;
@@ -32,6 +35,9 @@ interface DBSMember {
   compliance_status: string;
   risk_level: string;
   last_contact_date: string | null;
+  form_token: string | null;
+  application_submitted: boolean;
+  form_data?: any;
 }
 
 interface DBSComplianceSectionProps {
@@ -48,7 +54,9 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showBatchRequestModal, setShowBatchRequestModal] = useState(false);
+  const [showSendFormModal, setShowSendFormModal] = useState(false);
   const [requestMember, setRequestMember] = useState<DBSMember | null>(null);
+  const [formMember, setFormMember] = useState<DBSMember | null>(null);
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -66,13 +74,24 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
     try {
       const { data, error } = await supabase
         .from('household_member_dbs_tracking')
-        .select('*')
+        .select(`
+          *,
+          household_member_forms!household_member_forms_member_id_fkey(*)
+        `)
         .eq('application_id', applicationId)
         .order('member_type')
         .order('full_name');
 
       if (error) throw error;
-      setMembers(data || []);
+      
+      const membersWithFormData = (data || []).map(member => ({
+        ...member,
+        form_data: Array.isArray(member.household_member_forms) && member.household_member_forms.length > 0 
+          ? member.household_member_forms[0] 
+          : null
+      }));
+      
+      setMembers(membersWithFormData);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -152,6 +171,51 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
   const handleRequestDBS = (member: DBSMember) => {
     setRequestMember(member);
     setShowRequestModal(true);
+  };
+  
+  const handleSendForm = (member: DBSMember) => {
+    setFormMember(member);
+    setShowSendFormModal(true);
+  };
+  
+  const handleDownloadFormPDF = async (member: DBSMember) => {
+    if (!member.form_data) {
+      toast({
+        title: "Error",
+        description: "No form data available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const blob = await pdf(
+        <HouseholdFormPDF 
+          formData={member.form_data}
+          memberName={member.full_name}
+          applicantName={applicantName}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${member.full_name.replace(/\s+/g, '_')}_CMA-H2_Form.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "PDF downloaded successfully",
+      });
+    } catch (error: any) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleToggleMemberSelection = (memberId: string) => {
@@ -445,6 +509,7 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
                   <th className="text-left p-3 font-medium">DOB / Age</th>
                   <th className="text-left p-3 font-medium">Risk Level</th>
                   <th className="text-left p-3 font-medium">DBS Status</th>
+                  <th className="text-left p-3 font-medium">Form Status</th>
                   <th className="text-left p-3 font-medium">Reminders</th>
                   <th className="text-left p-3 font-medium">Certificate #</th>
                   <th className="text-left p-3 font-medium">Actions</th>
@@ -477,6 +542,21 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
                       <td className="p-3">{getRiskBadge(member.risk_level)}</td>
                       <td className="p-3">{getStatusBadge(member.dbs_status)}</td>
                       <td className="p-3">
+                        {member.application_submitted ? (
+                          <Badge variant="default">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Completed
+                          </Badge>
+                        ) : member.form_token ? (
+                          <Badge variant="secondary">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pending
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Not Sent</Badge>
+                        )}
+                      </td>
+                      <td className="p-3">
                         <div className="text-sm">
                           <div className="font-medium">{member.reminder_count || 0} sent</div>
                           {daysSinceContact !== null && (
@@ -497,25 +577,46 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
                         )}
                       </td>
                       <td className="p-3">
-                        <div className="flex gap-2">
-                          {(member.dbs_status === 'not_requested' || member.dbs_status === 'requested') && (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex gap-2">
+                            {(member.dbs_status === 'not_requested' || member.dbs_status === 'requested') && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRequestDBS(member)}
+                              >
+                                <Mail className="h-4 w-4 mr-1" />
+                                {member.dbs_status === 'requested' ? 'Resend' : 'Request'}
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleRecordCertificate(member)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              {member.dbs_certificate_number ? 'Update' : 'Record'}
+                            </Button>
+                          </div>
+                          {member.application_submitted ? (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleDownloadFormPDF(member)}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download Form
+                            </Button>
+                          ) : (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleRequestDBS(member)}
+                              onClick={() => handleSendForm(member)}
                             >
-                              <Mail className="h-4 w-4 mr-1" />
-                              {member.dbs_status === 'requested' ? 'Resend' : 'Request'}
+                              <Send className="h-4 w-4 mr-1" />
+                              {member.form_token ? 'Resend Form' : 'Send Form'}
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleRecordCertificate(member)}
-                          >
-                            <FileText className="h-4 w-4 mr-1" />
-                            {member.dbs_certificate_number ? 'Update' : 'Record'}
-                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -607,6 +708,17 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
           applicantName={applicantName}
           applicantEmail={applicantEmail}
           originalApplicantEmail={applicantEmail}
+          onSuccess={loadMembers}
+        />
+      )}
+
+      {formMember && (
+        <SendHouseholdFormModal
+          isOpen={showSendFormModal}
+          onClose={() => setShowSendFormModal(false)}
+          member={formMember}
+          applicantEmail={applicantEmail}
+          applicantName={applicantName}
           onSuccess={loadMembers}
         />
       )}
