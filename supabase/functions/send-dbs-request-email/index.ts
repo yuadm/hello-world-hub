@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { sendEmail, createEmailTemplate } from "../_shared/email-service.ts";
 
-const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const appUrl = Deno.env.get("APP_URL") || "https://your-app.lovable.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,46 +73,44 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Send DBS reminder email to household member
-    const memberEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": brevoApiKey!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { 
-          name: "Childminder Registration", 
-          email: "yuadm3@gmail.com"
-        },
-        to: [{ email: memberEmail, name: memberData.full_name }],
-        subject: "DBS Check Required - Action Needed",
-        htmlContent: `
-          <h1>DBS Check Required</h1>
-          <p>Dear ${memberData.full_name},</p>
-          <p>${contextName} ${isEmployee ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As an adult member of their household, we need to conduct a DBS (Disclosure and Barring Service) check for you.</p>
-          
-          <p><strong>What you need to do:</strong></p>
-          <ul>
-            <li>Please contact the registration team to arrange your DBS check</li>
-            <li>You will need to provide identification documents</li>
-            <li>The process typically takes 2-4 weeks</li>
-          </ul>
+    // Create email content using template
+    const emailContent = `
+      <p>Dear ${memberData.full_name},</p>
+      <p>${contextName} ${isEmployee ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As an adult member of their household, we need to conduct a DBS (Disclosure and Barring Service) check for you.</p>
+      
+      <p><strong>What you need to do:</strong></p>
+      <ul>
+        <li>Apply for an Enhanced DBS check with Barred Lists check</li>
+        <li>Complete the online application form</li>
+        <li>Provide the required identification documents</li>
+        <li>Pay the applicable fee (if any)</li>
+      </ul>
 
-          <p><strong>Important:</strong> The childminder registration cannot proceed until all required DBS checks are completed.</p>
+      <p><strong>Important:</strong> The childminder registration cannot proceed until all required DBS checks are completed.</p>
 
-          <p>If you have any questions or need to schedule your DBS check, please contact:</p>
-          <p>Email: yuadm3@gmail.com</p>
+      <p>If you have any questions or need to schedule your DBS check, please contact us.</p>
+    `;
 
-          <p>Best regards,<br>Childminder Registration Team</p>
-        `,
-      }),
+    const htmlContent = createEmailTemplate(
+      'DBS Check Required - Action Needed',
+      emailContent,
+      'Best regards,<br>Childminder Registration Team'
+    );
+
+    // Send email with retry logic
+    console.log("Sending email to:", memberEmail);
+    const emailResult = await sendEmail({
+      to: memberEmail,
+      toName: memberData.full_name,
+      subject: 'DBS Check Required - Action Needed',
+      htmlContent,
     });
 
-    if (!memberEmailResponse.ok) {
-      console.error("Failed to send DBS request email");
-      throw new Error("Failed to send email");
+    if (!emailResult.success) {
+      throw new Error(emailResult.error || 'Failed to send email');
     }
+
+    console.log("Email sent successfully, messageId:", emailResult.messageId);
 
     return new Response(JSON.stringify({ 
       success: true,
