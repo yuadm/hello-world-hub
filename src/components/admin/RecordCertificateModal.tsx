@@ -56,12 +56,12 @@ export const RecordCertificateModal = ({ open, onOpenChange, member, onSave }: R
         notes: notes || null,
       };
 
-      // Only include certificate fields if status is certificate_received
-      if (status === 'certificate_received') {
+      // Only include certificate fields if status is received
+      if (status === 'received') {
         if (!certificateNumber || !certificateDate) {
           toast({
             title: "Validation Error",
-            description: "Certificate number and date are required when status is 'Certificate Received'",
+            description: "Certificate number and date are required when status is 'Received'",
             variant: "destructive",
           });
           setSaving(false);
@@ -119,7 +119,7 @@ export const RecordCertificateModal = ({ open, onOpenChange, member, onSave }: R
                 <SelectItem value="not_requested">Not Requested</SelectItem>
                 <SelectItem value="requested">Requested</SelectItem>
                 <SelectItem value="applied">Applied</SelectItem>
-                <SelectItem value="certificate_received">Certificate Received</SelectItem>
+                <SelectItem value="received">Certificate Received</SelectItem>
                 <SelectItem value="exempt">Exempt</SelectItem>
               </SelectContent>
             </Select>
@@ -139,7 +139,7 @@ export const RecordCertificateModal = ({ open, onOpenChange, member, onSave }: R
             </p>
           </div>
 
-          {status === 'certificate_received' && (
+          {status === 'received' && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="certificate-number">Certificate Number *</Label>

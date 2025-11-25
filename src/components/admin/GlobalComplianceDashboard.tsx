@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertTriangle, AlertCircle, Clock, CheckCircle, Calendar, TrendingUp } from "lucide-react";
+import { AlertTriangle, AlertCircle, Clock, CheckCircle, Calendar, TrendingUp, Mail } from "lucide-react";
 import { ComplianceMetricsCard } from "./ComplianceMetricsCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+
+interface OverdueMember {
+  member_id: string;
+  member_name: string;
+  member_type: string;
+  days_overdue: number;
+  reminder_count: number;
+  last_reminder_date: string | null;
+  email: string | null;
+  source_table: string;
+}
 
 export const GlobalComplianceDashboard = () => {
   const [metrics, setMetrics] = useState({
@@ -18,12 +30,26 @@ export const GlobalComplianceDashboard = () => {
     totalMembers: 0,
     completionRate: 0,
   });
+  const [overdueMembers, setOverdueMembers] = useState<OverdueMember[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadGlobalMetrics();
+    loadOverdueMembers();
   }, []);
+
+  const loadOverdueMembers = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_overdue_dbs_requests');
+      
+      if (error) throw error;
+      
+      setOverdueMembers(data || []);
+    } catch (error) {
+      console.error("Error loading overdue members:", error);
+    }
+  };
 
   const loadGlobalMetrics = async () => {
     try {
@@ -204,6 +230,57 @@ export const GlobalComplianceDashboard = () => {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Overdue DBS Requests */}
+      {overdueMembers.length > 0 && (
+        <div className="border rounded-lg">
+          <div className="bg-muted p-4 border-b">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Clock className="h-5 w-5 text-destructive" />
+              Overdue DBS Requests ({overdueMembers.length})
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Members with DBS requests overdue by 28+ days
+            </p>
+          </div>
+          <div className="divide-y">
+            {overdueMembers.slice(0, 10).map((member) => (
+              <div key={member.member_id} className="p-4 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{member.member_name}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {member.member_type}
+                      </Badge>
+                      <Badge variant="destructive" className="text-xs">
+                        {member.days_overdue} days overdue
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                      {member.email && (
+                        <span className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {member.email}
+                        </span>
+                      )}
+                      <span>Reminders: {member.reminder_count}</span>
+                      {member.last_reminder_date && (
+                        <span>Last: {format(new Date(member.last_reminder_date), 'dd/MM/yyyy')}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {overdueMembers.length > 10 && (
+            <div className="p-4 bg-muted/30 text-center text-sm text-muted-foreground">
+              Showing 10 of {overdueMembers.length} overdue requests
+            </div>
+          )}
         </div>
       )}
     </div>

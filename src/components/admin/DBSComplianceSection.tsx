@@ -53,10 +53,13 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [syncResult, setSyncResult] = useState<{ synced: any[], total: number } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadMembers();
+    autoSyncMembers();
   }, [applicationId]);
 
   const loadMembers = async () => {
@@ -81,6 +84,26 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
     }
   };
 
+  const autoSyncMembers = async () => {
+    // Auto-sync on page load (silent sync)
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-household-members', {
+        body: { applicationId },
+      });
+
+      if (error) throw error;
+      
+      setLastSyncTime(new Date());
+      setSyncResult(data);
+      
+      if (data.total > 0) {
+        loadMembers();
+      }
+    } catch (error: any) {
+      console.error("Auto-sync failed:", error);
+    }
+  };
+
   const syncMembers = async () => {
     setSyncing(true);
     try {
@@ -90,9 +113,28 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
 
       if (error) throw error;
 
+      setLastSyncTime(new Date());
+      setSyncResult(data);
+
+      // Enhanced feedback with details
+      const summary = data.synced
+        .reduce((acc: { created: number; updated: number }, item: any) => {
+          if (item.action === 'created') acc.created++;
+          if (item.action === 'updated') acc.updated++;
+          return acc;
+        }, { created: 0, updated: 0 });
+
+      let description = `Synced ${data.total} household members`;
+      if (summary.created > 0 || summary.updated > 0) {
+        const details = [];
+        if (summary.created > 0) details.push(`${summary.created} added`);
+        if (summary.updated > 0) details.push(`${summary.updated} updated`);
+        description += ` (${details.join(', ')})`;
+      }
+
       toast({
         title: "Sync Complete",
-        description: `Synced ${data.total} household members`,
+        description,
       });
 
       loadMembers();
@@ -318,6 +360,16 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
           <p className="text-sm text-muted-foreground">
             Track and manage DBS checks for all household members
           </p>
+          {lastSyncTime && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last synced: {format(lastSyncTime, 'dd/MM/yyyy HH:mm')}
+              {syncResult && syncResult.total > 0 && (
+                <span className="ml-2 text-primary font-medium">
+                  ({syncResult.total} member{syncResult.total > 1 ? 's' : ''})
+                </span>
+              )}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {selectedMemberIds.size > 0 && (
