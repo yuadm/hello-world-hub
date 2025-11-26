@@ -198,21 +198,11 @@ const AdminEmployeeDetail = () => {
           </Card>
         </div>
 
-        <Card className="rounded-2xl border-0 shadow-apple-sm">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold tracking-tight">DBS Compliance Tracking</CardTitle>
-            <CardDescription>
-              Track and manage DBS checks for all household members
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EmployeeDBSComplianceSection
-              employeeId={id!}
-              employeeEmail={employee.email}
-              employeeName={`${employee.first_name} ${employee.last_name}`}
-            />
-          </CardContent>
-        </Card>
+        <EmployeeDBSComplianceSection
+          employeeId={id!}
+          employeeEmail={employee.email}
+          employeeName={`${employee.first_name} ${employee.last_name}`}
+        />
       </div>
     </AdminLayout>
   );

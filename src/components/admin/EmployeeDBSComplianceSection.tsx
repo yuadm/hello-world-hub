@@ -545,19 +545,15 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
 
   return (
     <div className="space-y-6">
-      {/* Action Bar */}
-      <div className="bg-muted/20 p-5 rounded-xl border border-border/50 flex justify-between items-center">
-        <div>
-          <h3 className="font-semibold text-lg">DBS Compliance Management</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Track and manage DBS checks for all household members
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button onClick={handleAddMember} variant="outline" size="sm" className="rounded-lg">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add Member
-          </Button>
+      {/* Header */}
+      <div className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Household Compliance Management</h2>
+            <p className="text-muted-foreground mt-1">
+              Track and manage DBS checks and household forms for all household members
+            </p>
+          </div>
           {selectedMemberIds.size > 0 && (
             <Button onClick={handleSendBatchRequests} variant="default" size="sm" className="rounded-lg">
               <Send className="h-4 w-4 mr-2" />
@@ -617,16 +613,28 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
       {/* Tabs for All/Adults/Children */}
       {allMembers.length > 0 ? (
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "adults" | "children")} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="all">All ({allMembers.length})</TabsTrigger>
-            <TabsTrigger value="adults">Adults ({adults.length})</TabsTrigger>
-            <TabsTrigger value="children">Children ({children.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-12 p-1 bg-muted/50">
+            <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              All ({allMembers.length})
+            </TabsTrigger>
+            <TabsTrigger value="adults" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Adults ({adults.length})
+            </TabsTrigger>
+            <TabsTrigger value="children" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Children ({children.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-6">
             {adults.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold mb-4">Adults & Assistants (16+)</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Adults & Assistants (16+)</h3>
+                  <Button onClick={handleAddMember} variant="outline" size="sm" className="rounded-lg">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Member
+                  </Button>
+                </div>
                 {renderAdultsTable()}
               </div>
             )}
@@ -641,7 +649,13 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
           <TabsContent value="adults" className="space-y-4">
             {adults.length > 0 ? (
               <div>
-                <h3 className="text-lg font-semibold mb-4">Adults & Assistants (16+)</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Adults & Assistants (16+)</h3>
+                  <Button onClick={handleAddMember} variant="outline" size="sm" className="rounded-lg">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Member
+                  </Button>
+                </div>
                 {renderAdultsTable()}
               </div>
             ) : (
