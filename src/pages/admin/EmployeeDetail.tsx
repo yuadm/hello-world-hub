@@ -109,28 +109,30 @@ const AdminEmployeeDetail = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/admin/employees')}
-              className="mb-3 -ml-2 rounded-lg hover:bg-muted/50"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Employees
-            </Button>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {employee.first_name} {employee.last_name}
-            </h1>
-            <p className="text-muted-foreground mt-1">{employee.email}</p>
-          </div>
-          <Badge 
-            variant={getEmploymentStatusConfig(employee.employment_status).variant}
-            className="px-4 py-2 rounded-full text-sm font-medium"
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin/employees')}
+            className="mb-3 -ml-2 rounded-lg hover:bg-muted text-foreground"
           >
-            {getEmploymentStatusConfig(employee.employment_status).label}
-          </Badge>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Employees
+          </Button>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {employee.first_name} {employee.last_name}
+              </h1>
+              <p className="text-muted-foreground mt-1">{employee.email}</p>
+            </div>
+            <Badge 
+              variant={getEmploymentStatusConfig(employee.employment_status).variant}
+              className="px-4 py-2 rounded-full text-sm font-medium"
+            >
+              {getEmploymentStatusConfig(employee.employment_status).label}
+            </Badge>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
