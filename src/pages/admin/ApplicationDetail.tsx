@@ -4,8 +4,9 @@ import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { ArrowLeft, Edit, Save, X, ArrowRight, Download } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Edit, Save, X, ArrowRight, Download, User, Home, FileText, Briefcase, GraduationCap, Users, Shield, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";
@@ -85,7 +86,6 @@ interface DBApplication {
   declaration_signature: string;
   user_id: string;
   updated_at: string;
-  // New fields for complete data capture
   right_to_work: string;
   home_postcode: string;
   home_move_in: string;
@@ -280,7 +280,6 @@ const ApplicationDetail = () => {
 
       setDbApplication(data as unknown as DBApplication);
       
-      // Check if employee already exists for this application
       const { data: employeeData } = await supabase
         .from('employees')
         .select('id')
@@ -291,7 +290,6 @@ const ApplicationDetail = () => {
         setExistingEmployeeId(employeeData.id);
       }
       
-      // Map database data to form format
       const formData = mapDBToForm(data as unknown as DBApplication);
       form.reset(formData);
       
@@ -310,7 +308,6 @@ const ApplicationDetail = () => {
     setUpdating(true);
     try {
       if (newStatus === 'approved') {
-        // Call edge function to convert applicant to employee
         const { data, error } = await supabase.functions.invoke('approve-and-convert-to-employee', {
           body: { applicationId: id },
         });
@@ -321,7 +318,6 @@ const ApplicationDetail = () => {
           setDbApplication(prev => prev ? { ...prev, status: newStatus } : null);
           
           if (data.alreadyExists) {
-            // Employee already exists
             setExistingEmployeeId(data.employeeId);
             toast({
               title: "Already Approved",
@@ -337,7 +333,6 @@ const ApplicationDetail = () => {
               ),
             });
           } else {
-            // New employee created
             setExistingEmployeeId(data.employeeId);
             toast({
               title: "Application Approved",
@@ -357,7 +352,6 @@ const ApplicationDetail = () => {
           throw new Error('Failed to convert applicant to employee');
         }
       } else {
-        // Regular status update for other statuses
         const { error } = await supabase
           .from('childminder_applications' as any)
           .update({ status: newStatus })
@@ -408,7 +402,6 @@ const ApplicationDetail = () => {
   };
 
   const saveChanges = async () => {
-    // Validate all sections
     const allErrors: string[] = [];
     for (let section = 1; section <= totalSections; section++) {
       const validator = getValidatorForSection(section);
@@ -592,14 +585,19 @@ const ApplicationDetail = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusStyles: Record<string, string> = {
-      pending: "bg-amber-50 text-amber-700 border border-amber-200",
-      approved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-      rejected: "bg-rose-50 text-rose-700 border border-rose-200",
+    const statusConfig: Record<string, { bg: string; icon: any }> = {
+      pending: { bg: "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border-amber-200", icon: Clock },
+      approved: { bg: "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
+      rejected: { bg: "bg-gradient-to-r from-rose-50 to-rose-100 text-rose-700 border-rose-200", icon: AlertCircle },
     };
+    
+    const config = statusConfig[status] || statusConfig.pending;
+    const Icon = config.icon;
+    
     return (
-      <Badge className={`rounded-full px-4 py-2 text-sm font-medium ${statusStyles[status] || statusStyles.pending}`}>
-        {status}
+      <Badge className={`rounded-xl px-4 py-2 text-sm font-medium border ${config.bg}`}>
+        <Icon className="h-4 w-4 mr-1.5" />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
   };
@@ -632,28 +630,12 @@ const ApplicationDetail = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="mb-8">
-          <div className="h-10 w-48 bg-muted rounded-lg animate-shimmer mb-4" />
-          <div className="h-9 w-96 bg-muted rounded-xl animate-shimmer mb-2" />
-          <div className="h-5 w-64 bg-muted rounded-lg animate-shimmer" />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
-              <div className="space-y-4">
-                <div className="h-6 w-48 bg-muted rounded-lg animate-shimmer" />
-                <div className="space-y-3">
-                  {[...Array(4)].map((_, j) => (
-                    <div key={j} className="space-y-1">
-                      <div className="h-4 w-32 bg-muted rounded animate-shimmer" />
-                      <div className="h-5 w-full bg-muted rounded animate-shimmer" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="space-y-6">
+          <div className="h-10 w-48 bg-muted rounded-lg animate-shimmer" />
+          <div className="grid gap-6">
+            <div className="h-48 bg-muted rounded-xl animate-shimmer" />
+            <div className="h-96 bg-muted rounded-xl animate-shimmer" />
+          </div>
         </div>
       </AdminLayout>
     );
@@ -756,35 +738,37 @@ const ApplicationDetail = () => {
     );
   }
 
-  // View Mode
+  // View Mode - NEW MODERN DESIGN
   const formData = form.getValues();
   
   return (
     <AdminLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-          <div>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          <div className="space-y-3">
             <Button 
               variant="ghost" 
               onClick={() => navigate('/admin/applications')}
-              className="mb-3 -ml-2 rounded-lg hover:bg-muted/50"
+              className="mb-2 -ml-2 hover:bg-muted/50"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Applications
             </Button>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {dbApplication.first_name} {dbApplication.last_name}
-            </h1>
-            <p className="text-muted-foreground mt-1">{dbApplication.email}</p>
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight">
+                {dbApplication.first_name} {dbApplication.last_name}
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">{dbApplication.email}</p>
+            </div>
           </div>
-          <div className="flex gap-2 items-center flex-wrap">
+          
+          <div className="flex gap-3 items-start flex-wrap">
             {getStatusBadge(dbApplication.status)}
-            
             
             {existingEmployeeId && (
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => navigate(`/admin/employees/${existingEmployeeId}`)}
                 className="rounded-xl"
               >
@@ -797,7 +781,7 @@ const ApplicationDetail = () => {
               onValueChange={updateStatus} 
               disabled={updating || existingEmployeeId !== null}
             >
-              <SelectTrigger className="w-[180px] rounded-xl border-border/50">
+              <SelectTrigger className="w-[180px] rounded-xl">
                 <SelectValue placeholder="Change status" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -807,802 +791,793 @@ const ApplicationDetail = () => {
               </SelectContent>
             </Select>
             
-            {existingEmployeeId && (
-              <p className="text-sm text-muted-foreground w-full">
-                Status cannot be changed after conversion to employee
-              </p>
-            )}
-            
             <Button 
               onClick={() => setIsEditMode(true)} 
               disabled={existingEmployeeId !== null}
               className="rounded-xl"
             >
               <Edit className="h-4 w-4 mr-2" />
-              Edit Application
+              Edit
             </Button>
+            
             <Button 
               onClick={handleDownloadPDF} 
               variant="secondary"
               className="rounded-xl"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download PDF
+              PDF
             </Button>
           </div>
         </div>
 
-        <Card className="rounded-2xl border-0 shadow-apple-sm p-8">
-          <div className="space-y-8">
-            {/* Section 1: Personal Details */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-semibold tracking-tight mb-4">1. Personal Details</h2>
-              <dl className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Title</dt>
-                  <dd className="mt-1">{formData.title}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">First Name</dt>
-                  <dd className="mt-1">{formData.firstName}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Middle Names</dt>
-                  <dd className="mt-1">{formData.middleNames || "N/A"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Last Name</dt>
-                  <dd className="mt-1">{formData.lastName}</dd>
-                </div>
-                {formData.previousNames && formData.previousNames.length > 0 && (
-                  <div className="md:col-span-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Previous Names</dt>
-                    <dd className="mt-1 space-y-1">
-                      {formData.previousNames.map((name: any, idx: number) => (
-                        <div key={idx} className="text-sm">
-                          {name.fullName} <span className="text-muted-foreground">({name.dateFrom} to {name.dateTo})</span>
-                        </div>
-                      ))}
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Gender</dt>
-                  <dd className="mt-1">{formData.gender}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Date of Birth</dt>
-                  <dd className="mt-1">{formData.dob ? format(new Date(formData.dob), "MMMM dd, yyyy") : "N/A"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Place of Birth</dt>
-                  <dd className="mt-1">{dbApplication.place_of_birth || "N/A"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Right to Work</dt>
-                  <dd className="mt-1">{(formData as any).rightToWork || "N/A"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">National Insurance Number</dt>
-                  <dd className="mt-1">{formData.niNumber}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                  <dd className="mt-1">{formData.email}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Mobile Phone</dt>
-                  <dd className="mt-1">{formData.phone}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Home Phone</dt>
-                  <dd className="mt-1">{dbApplication.phone_home || "N/A"}</dd>
-                </div>
-              </dl>
-            </section>
+        {existingEmployeeId && (
+          <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+            <CardContent className="p-4">
+              <p className="text-sm text-blue-900 dark:text-blue-100">
+                Status cannot be changed after conversion to employee
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Section 2: Address */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">2. Address History</h2>
-              <dl className="space-y-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Current Address</dt>
-                  <dd className="mt-1">
-                    {formData.homeAddress?.line1}<br />
-                    {formData.homeAddress?.line2 && <>{formData.homeAddress.line2}<br /></>}
-                    {formData.homeAddress?.town}<br />
-                    {formData.homeAddress?.postcode}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Moved in</dt>
-                  <dd className="mt-1">{(formData as any).homeMoveIn || "N/A"}</dd>
-                </div>
-                {formData.addressHistory && formData.addressHistory.length > 0 && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Previous Addresses (5 Year History)</dt>
-                    <dd className="mt-1 space-y-2">
-                      {formData.addressHistory.map((addr: any, idx: number) => (
-                        <div key={idx} className="text-sm border-l-2 border-muted pl-3">
-                          <div className="font-medium">{addr.address?.line1}, {addr.address?.town}, {addr.address?.postcode}</div>
-                          <div className="text-muted-foreground">
-                            Moved in: {addr.moveIn} | Moved out: {addr.moveOut}
-                          </div>
-                        </div>
-                      ))}
-                    </dd>
-                  </div>
-                )}
-                {(formData as any).addressGaps && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Explanation for Address Gaps</dt>
-                    <dd className="mt-1">{(formData as any).addressGaps}</dd>
-                  </div>
-                )}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Lived Outside UK</dt>
-                    <dd className="mt-1">{(formData as any).livedOutsideUK || "N/A"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Lived on Military Base</dt>
-                    <dd className="mt-1">{(formData as any).militaryBase || "N/A"}</dd>
-                  </div>
-                </div>
-              </dl>
-            </section>
+        {/* Main Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid grid-cols-4 lg:grid-cols-8 gap-2 bg-muted/50 p-2 rounded-xl h-auto">
+            <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <User className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <User className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Personal</span>
+            </TabsTrigger>
+            <TabsTrigger value="address" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Home className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Address</span>
+            </TabsTrigger>
+            <TabsTrigger value="service" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Briefcase className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Service</span>
+            </TabsTrigger>
+            <TabsTrigger value="qualifications" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <GraduationCap className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Training</span>
+            </TabsTrigger>
+            <TabsTrigger value="employment" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Briefcase className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Work</span>
+            </TabsTrigger>
+            <TabsTrigger value="household" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Users className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">People</span>
+            </TabsTrigger>
+            <TabsTrigger value="compliance" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Shield className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Compliance</span>
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Section 3: Premises */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">3. Premises</h2>
-              <dl className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Local Authority</dt>
-                  <dd className="mt-1">{formData.localAuthority}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Premises Type</dt>
-                  <dd className="mt-1">{formData.premisesType}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Same as Home Address</dt>
-                  <dd className="mt-1">{(formData as any).sameAddress || "N/A"}</dd>
-                </div>
-                {formData.childcareAddress && (formData as any).sameAddress === "No" && (
-                  <div className="md:col-span-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Childcare Address</dt>
-                    <dd className="mt-1">
-                      {formData.childcareAddress?.line1}<br />
-                      {formData.childcareAddress?.line2 && <>{formData.childcareAddress.line2}<br /></>}
-                      {formData.childcareAddress?.town}<br />
-                      {formData.childcareAddress?.postcode}
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Additional Premises</dt>
-                  <dd className="mt-1">{(formData as any).useAdditionalPremises || "N/A"}</dd>
-                </div>
-                {(formData as any).additionalPremises && (formData as any).additionalPremises.length > 0 && (
-                  <div className="md:col-span-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Additional Premises Details</dt>
-                    <dd className="mt-1 space-y-2">
-                      {(formData as any).additionalPremises.map((premise: any, idx: number) => (
-                        <div key={idx} className="text-sm border-l-2 border-muted pl-3">
-                          <div className="font-medium">{premise.address}</div>
-                          <div className="text-muted-foreground">Reason: {premise.reason}</div>
-                        </div>
-                      ))}
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Outdoor Space</dt>
-                  <dd className="mt-1">{(formData as any).outdoorSpace || "N/A"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Pets</dt>
-                  <dd className="mt-1">{formData.pets}</dd>
-                </div>
-                {formData.petsDetails && (
-                  <div className="md:col-span-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Pet Details</dt>
-                    <dd className="mt-1">{formData.petsDetails}</dd>
-                  </div>
-                )}
-              </dl>
-            </section>
-
-            {/* Section 4: Service */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">4. Service Details</h2>
-              <dl className="space-y-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Age Groups</dt>
-                  <dd className="mt-1">{formData.ageGroups?.join(", ") || "N/A"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Work With Others</dt>
-                  <dd className="mt-1">{(formData as any).workWithOthers || "N/A"}</dd>
-                </div>
-                {(formData as any).workWithOthers === "Yes" && (
-                  <>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Number of Assistants</dt>
-                      <dd className="mt-1">{(formData as any).numberOfAssistants || 0}</dd>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-blue-500 rounded-lg">
+                      <User className="h-5 w-5 text-white" />
                     </div>
-                    {formData.assistants && formData.assistants.length > 0 && (
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">Assistants & Co-childminders</dt>
-                        <dd className="mt-1 space-y-2">
-                          {formData.assistants.map((person: any, idx: number) => (
-                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                              <div className="font-medium">{person.firstName} {person.lastName}</div>
-                              <div className="text-muted-foreground">Role: {person.role || "N/A"}</div>
-                              <div className="text-muted-foreground">DOB: {person.dob || "N/A"}</div>
-                              <div className="text-muted-foreground">Email: {person.email || "N/A"}</div>
-                              <div className="text-muted-foreground">Phone: {person.phone || "N/A"}</div>
-                            </div>
-                          ))}
-                        </dd>
-                      </div>
-                    )}
-                  </>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Proposed Capacity</dt>
-                  <dd className="mt-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                    <div>Under 1: {formData.proposedUnder1 || 0}</div>
-                    <div>Under 5: {formData.proposedUnder5 || 0}</div>
-                    <div>5-8 years: {formData.proposed5to8 || 0}</div>
-                    <div>8+ years: {formData.proposed8plus || 0}</div>
-                  </dd>
-                </div>
-                {formData.childcareTimes && formData.childcareTimes.length > 0 && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Childcare Times</dt>
-                    <dd className="mt-1">{formData.childcareTimes.join(", ")}</dd>
+                    <h3 className="font-semibold">Personal Info</h3>
                   </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Overnight Care</dt>
-                  <dd className="mt-1">{(formData as any).overnightCare || "N/A"}</dd>
-                </div>
-              </dl>
-            </section>
+                  <p className="text-2xl font-bold text-blue-950 dark:text-blue-50">
+                    {formData.gender}, {formData.dob ? new Date().getFullYear() - new Date(formData.dob).getFullYear() : 'N/A'} years
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    DOB: {formData.dob ? format(new Date(formData.dob), "MMM dd, yyyy") : "N/A"}
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* Section 5: Qualifications */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">5. Qualifications & Training</h2>
-              <dl className="space-y-6">
-                <div className="space-y-2">
-                  <dt className="text-sm font-medium text-muted-foreground">First Aid Training</dt>
-                  <dd className="mt-1 grid md:grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Completed</div>
-                      <div>{formData.firstAid?.completed || "No"}</div>
+              <Card className="border-0 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/20 dark:to-emerald-900/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-emerald-500 rounded-lg">
+                      <Home className="h-5 w-5 text-white" />
                     </div>
-                    {formData.firstAid?.completed === "Yes" && (
-                      <>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Provider</div>
-                          <div>{formData.firstAid.provider || "N/A"}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Completion Date</div>
-                          <div>{formData.firstAid.completionDate || "N/A"}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Certificate Number</div>
-                          <div>{formData.firstAid.certificateNumber || "N/A"}</div>
-                        </div>
-                      </>
-                    )}
-                  </dd>
-                </div>
-                {formData.safeguarding && (
-                  <div className="space-y-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Safeguarding Training</dt>
-                    <dd className="mt-1 grid md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-muted-foreground">Completed</div>
-                        <div>{formData.safeguarding.completed || "No"}</div>
-                      </div>
-                      {formData.safeguarding.completed === "Yes" && (
-                        <>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Provider</div>
-                            <div>{formData.safeguarding.provider || "N/A"}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Completion Date</div>
-                            <div>{formData.safeguarding.completionDate || "N/A"}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Certificate Number</div>
-                            <div>{formData.safeguarding.certificateNumber || "N/A"}</div>
-                          </div>
-                        </>
-                      )}
-                    </dd>
+                    <h3 className="font-semibold">Location</h3>
                   </div>
-                )}
-                {formData.eyfsChildminding && (
-                  <div className="space-y-2">
-                    <dt className="text-sm font-medium text-muted-foreground">EYFS/Childminding Course</dt>
-                    <dd className="mt-1 grid md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-muted-foreground">Completed</div>
-                        <div>{formData.eyfsChildminding.completed || "No"}</div>
-                      </div>
-                      {formData.eyfsChildminding.completed === "Yes" && (
-                        <>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Provider</div>
-                            <div>{formData.eyfsChildminding.provider || "N/A"}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Completion Date</div>
-                            <div>{formData.eyfsChildminding.completionDate || "N/A"}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Certificate Number</div>
-                            <div>{formData.eyfsChildminding.certificateNumber || "N/A"}</div>
-                          </div>
-                        </>
-                      )}
-                    </dd>
-                  </div>
-                )}
-                {formData.level2Qual && (
-                  <div className="space-y-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Level 2 Qualification</dt>
-                    <dd className="mt-1 grid md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-muted-foreground">Completed</div>
-                        <div>{formData.level2Qual.completed || "No"}</div>
-                      </div>
-                      {formData.level2Qual.completed === "Yes" && (
-                        <>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Provider</div>
-                            <div>{formData.level2Qual.provider || "N/A"}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Completion Date</div>
-                            <div>{formData.level2Qual.completionDate || "N/A"}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Certificate Number</div>
-                            <div>{formData.level2Qual.certificateNumber || "N/A"}</div>
-                          </div>
-                        </>
-                      )}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </section>
+                  <p className="text-lg font-semibold text-emerald-950 dark:text-emerald-50">
+                    {formData.localAuthority || "N/A"}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {formData.homeAddress?.town || "N/A"}
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* Section 6: Employment */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">6. Employment History & References</h2>
-              <dl className="space-y-6">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-2">Employment/Education History (5 Years)</dt>
-                  {formData.employmentHistory && formData.employmentHistory.length > 0 ? (
-                    <dd className="space-y-4">
-                      {formData.employmentHistory.map((job: any, idx: number) => (
-                        <div key={idx} className="border-l-2 border-muted pl-4 pb-3">
-                          <h3 className="font-medium">{job.role} at {job.employer}</h3>
+              <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/20 dark:to-purple-900/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-purple-500 rounded-lg">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="font-semibold">Capacity</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-950 dark:text-purple-50">
+                    {(formData.proposedUnder1 || 0) + (formData.proposedUnder5 || 0) + (formData.proposed5to8 || 0) + (formData.proposed8plus || 0)} children
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {formData.premisesType || "N/A"} premises
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6">Quick Summary</h2>
+                <dl className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Full Name</dt>
+                    <dd className="text-lg font-medium">{formData.title} {formData.firstName} {formData.middleNames} {formData.lastName}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Contact</dt>
+                    <dd className="text-lg">{formData.phone}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">NI Number</dt>
+                    <dd className="text-lg font-mono">{formData.niNumber}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Submitted</dt>
+                    <dd className="text-lg">{format(new Date(dbApplication.created_at), "MMM dd, yyyy")}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Personal Details Tab */}
+          <TabsContent value="personal" className="space-y-6">
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <User className="h-6 w-6 text-primary" />
+                  Personal Details
+                </h2>
+                <dl className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Title</dt>
+                    <dd className="text-lg">{formData.title}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">First Name</dt>
+                    <dd className="text-lg">{formData.firstName}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Middle Names</dt>
+                    <dd className="text-lg">{formData.middleNames || "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Last Name</dt>
+                    <dd className="text-lg">{formData.lastName}</dd>
+                  </div>
+                  {formData.previousNames && formData.previousNames.length > 0 && (
+                    <div className="md:col-span-2">
+                      <dt className="text-sm font-medium text-muted-foreground mb-2">Previous Names</dt>
+                      <dd className="space-y-2">
+                        {formData.previousNames.map((name: any, idx: number) => (
+                          <Card key={idx} className="bg-muted/30">
+                            <CardContent className="p-4">
+                              <p className="font-medium">{name.fullName}</p>
+                              <p className="text-sm text-muted-foreground">{name.dateFrom} to {name.dateTo}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Gender</dt>
+                    <dd className="text-lg">{formData.gender}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Date of Birth</dt>
+                    <dd className="text-lg">{formData.dob ? format(new Date(formData.dob), "MMMM dd, yyyy") : "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Place of Birth</dt>
+                    <dd className="text-lg">{dbApplication.place_of_birth || "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Right to Work</dt>
+                    <dd className="text-lg">{(formData as any).rightToWork || "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">National Insurance</dt>
+                    <dd className="text-lg font-mono">{formData.niNumber}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Email</dt>
+                    <dd className="text-lg">{formData.email}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Mobile Phone</dt>
+                    <dd className="text-lg">{formData.phone}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Home Phone</dt>
+                    <dd className="text-lg">{dbApplication.phone_home || "N/A"}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Address Tab */}
+          <TabsContent value="address" className="space-y-6">
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <Home className="h-6 w-6 text-primary" />
+                  Current Address
+                </h2>
+                <div className="space-y-4">
+                  <div className="p-6 bg-primary/5 rounded-xl">
+                    <p className="text-lg font-medium mb-2">{formData.homeAddress?.line1}</p>
+                    {formData.homeAddress?.line2 && <p className="text-muted-foreground">{formData.homeAddress.line2}</p>}
+                    <p className="text-muted-foreground">{formData.homeAddress?.town}</p>
+                    <p className="text-lg font-semibold mt-2">{formData.homeAddress?.postcode}</p>
+                    <p className="text-sm text-muted-foreground mt-3">Moved in: {(formData as any).homeMoveIn || "N/A"}</p>
+                  </div>
+                  
+                  <dl className="grid md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">Lived Outside UK</dt>
+                      <dd className="text-lg">{(formData as any).livedOutsideUK || "N/A"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">Military Base</dt>
+                      <dd className="text-lg">{(formData as any).militaryBase || "N/A"}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </CardContent>
+            </Card>
+
+            {formData.addressHistory && formData.addressHistory.length > 0 && (
+              <Card className="border">
+                <CardContent className="p-8">
+                  <h3 className="text-xl font-semibold mb-4">5 Year Address History</h3>
+                  <div className="space-y-3">
+                    {formData.addressHistory.map((addr: any, idx: number) => (
+                      <Card key={idx} className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <p className="font-medium">{addr.address?.line1}, {addr.address?.town}, {addr.address?.postcode}</p>
                           <p className="text-sm text-muted-foreground">
-                            {job.startDate} to {job.endDate}
+                            {addr.moveIn} → {addr.moveOut}
                           </p>
-                          <p className="text-sm mt-1"><span className="font-medium">Reason for leaving:</span> {job.reasonForLeaving}</p>
-                        </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {(formData as any).addressGaps && (
+                    <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">Address Gaps Explanation</p>
+                      <p className="text-sm text-amber-800 dark:text-amber-200">{(formData as any).addressGaps}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="border">
+              <CardContent className="p-8">
+                <h3 className="text-xl font-semibold mb-4">Childcare Premises</h3>
+                <dl className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Local Authority</dt>
+                    <dd className="text-lg">{formData.localAuthority}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Premises Type</dt>
+                    <dd className="text-lg">{formData.premisesType}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Same as Home Address</dt>
+                    <dd className="text-lg">{(formData as any).sameAddress || "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Outdoor Space</dt>
+                    <dd className="text-lg">{(formData as any).outdoorSpace || "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Pets</dt>
+                    <dd className="text-lg">{formData.pets}</dd>
+                  </div>
+                  {formData.petsDetails && (
+                    <div className="md:col-span-2">
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">Pet Details</dt>
+                      <dd className="text-lg">{formData.petsDetails}</dd>
+                    </div>
+                  )}
+                </dl>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Service Tab */}
+          <TabsContent value="service" className="space-y-6">
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <Briefcase className="h-6 w-6 text-primary" />
+                  Service Details
+                </h2>
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Age Groups</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.ageGroups?.map((group, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-sm px-3 py-1">
+                          {group}
+                        </Badge>
                       ))}
-                    </dd>
-                  ) : (
-                    <dd className="text-muted-foreground">No employment history provided</dd>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Proposed Capacity</h3>
+                    <dl className="space-y-2 text-sm">
+                      <div className="flex justify-between p-2 bg-muted/30 rounded">
+                        <dt>Under 1:</dt>
+                        <dd className="font-semibold">{formData.proposedUnder1 || 0}</dd>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/30 rounded">
+                        <dt>Under 5:</dt>
+                        <dd className="font-semibold">{formData.proposedUnder5 || 0}</dd>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/30 rounded">
+                        <dt>5-8 years:</dt>
+                        <dd className="font-semibold">{formData.proposed5to8 || 0}</dd>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/30 rounded">
+                        <dt>8+ years:</dt>
+                        <dd className="font-semibold">{formData.proposed8plus || 0}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mt-8">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Work With Others</dt>
+                    <dd className="text-lg">{(formData as any).workWithOthers || "N/A"}</dd>
+                  </div>
+                  {(formData as any).workWithOthers === "Yes" && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">Number of Assistants</dt>
+                      <dd className="text-lg">{(formData as any).numberOfAssistants || 0}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Overnight Care</dt>
+                    <dd className="text-lg">{(formData as any).overnightCare || "N/A"}</dd>
+                  </div>
+                  {formData.childcareTimes && formData.childcareTimes.length > 0 && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">Childcare Times</dt>
+                      <dd className="flex flex-wrap gap-2 mt-2">
+                        {formData.childcareTimes.map((time, idx) => (
+                          <Badge key={idx} variant="outline" className="text-sm">
+                            {time}
+                          </Badge>
+                        ))}
+                      </dd>
+                    </div>
                   )}
                 </div>
-                {(formData as any).employmentGaps && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Explanation for Gaps</dt>
-                    <dd className="mt-1">{(formData as any).employmentGaps}</dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Previously Worked/Volunteered with Children</dt>
-                  <dd className="mt-1">{(formData as any).childVolunteered || "N/A"}</dd>
-                </div>
-                {(formData as any).childVolunteered === "Yes" && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Consent to Contact Previous Employers</dt>
-                    <dd className="mt-1">{(formData as any).childVolunteeredConsent ? "Yes" : "No"}</dd>
-                  </div>
-                )}
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-bold mb-4">References</h3>
-                  <div className="space-y-6">
-                    <div className="bg-muted/30 p-4 rounded">
-                      <h4 className="font-medium mb-3">Reference 1</h4>
-                      <div className="grid md:grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <div className="text-xs text-muted-foreground">Full Name</div>
-                          <div>{(formData as any).reference1Name || "N/A"}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Relationship</div>
-                          <div>{(formData as any).reference1Relationship || "N/A"}</div>
-                        </div>
-                        <div className="md:col-span-2">
-                          <div className="text-xs text-muted-foreground">Contact Details</div>
-                          <div>{(formData as any).reference1Contact || "N/A"}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Childcare Reference</div>
-                          <div>{(formData as any).reference1Childcare || "N/A"}</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-muted/30 p-4 rounded">
-                      <h4 className="font-medium mb-3">Reference 2</h4>
-                      <div className="grid md:grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <div className="text-xs text-muted-foreground">Full Name</div>
-                          <div>{(formData as any).reference2Name || "N/A"}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Relationship</div>
-                          <div>{(formData as any).reference2Relationship || "N/A"}</div>
-                        </div>
-                        <div className="md:col-span-2">
-                          <div className="text-xs text-muted-foreground">Contact Details</div>
-                          <div>{(formData as any).reference2Contact || "N/A"}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Childcare Reference</div>
-                          <div>{(formData as any).reference2Childcare || "N/A"}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </dl>
-            </section>
+              </CardContent>
+            </Card>
 
-            {/* Section 7: Household Members */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">7. Household Members</h2>
-              <dl className="space-y-4">
-                {formData.adults && formData.adults.length > 0 && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Adults in Household</dt>
-                    <dd className="mt-1 space-y-2">
-                      {formData.adults.map((person: any, idx: number) => (
-                        <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                          <div className="font-medium">{person.fullName}</div>
-                          <div className="text-muted-foreground">Relationship: {person.relationship}</div>
-                          <div className="text-muted-foreground">DOB: {person.dob}</div>
+            {formData.assistants && formData.assistants.length > 0 && (
+              <Card className="border">
+                <CardContent className="p-8">
+                  <h3 className="text-xl font-semibold mb-4">Assistants & Co-childminders</h3>
+                  <div className="grid gap-4">
+                    {formData.assistants.map((person: any, idx: number) => (
+                      <Card key={idx} className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <p className="font-medium text-lg">{person.firstName} {person.lastName}</p>
+                          <div className="grid md:grid-cols-2 gap-2 mt-2 text-sm text-muted-foreground">
+                            <p>Role: {person.role || "N/A"}</p>
+                            <p>DOB: {person.dob || "N/A"}</p>
+                            <p>Email: {person.email || "N/A"}</p>
+                            <p>Phone: {person.phone || "N/A"}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Qualifications Tab */}
+          <TabsContent value="qualifications" className="space-y-6">
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                  Qualifications & Training
+                </h2>
+                
+                <div className="space-y-6">
+                  {/* First Aid */}
+                  <Card className={`${formData.firstAid?.completed === "Yes" ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200" : "bg-muted/30"}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <h3 className="text-lg font-semibold">First Aid Training</h3>
+                        <Badge variant={formData.firstAid?.completed === "Yes" ? "default" : "secondary"}>
+                          {formData.firstAid?.completed || "No"}
+                        </Badge>
+                      </div>
+                      {formData.firstAid?.completed === "Yes" && (
+                        <dl className="grid md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <dt className="text-muted-foreground mb-1">Provider</dt>
+                            <dd className="font-medium">{formData.firstAid.provider || "N/A"}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground mb-1">Completion Date</dt>
+                            <dd className="font-medium">{formData.firstAid.completionDate || "N/A"}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground mb-1">Certificate Number</dt>
+                            <dd className="font-medium font-mono">{formData.firstAid.certificateNumber || "N/A"}</dd>
+                          </div>
+                        </dl>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Safeguarding */}
+                  {formData.safeguarding && (
+                    <Card className={`${formData.safeguarding?.completed === "Yes" ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200" : "bg-muted/30"}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <h3 className="text-lg font-semibold">Safeguarding Training</h3>
+                          <Badge variant={formData.safeguarding?.completed === "Yes" ? "default" : "secondary"}>
+                            {formData.safeguarding?.completed || "No"}
+                          </Badge>
                         </div>
+                        {formData.safeguarding?.completed === "Yes" && (
+                          <dl className="grid md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Provider</dt>
+                              <dd className="font-medium">{formData.safeguarding.provider || "N/A"}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Completion Date</dt>
+                              <dd className="font-medium">{formData.safeguarding.completionDate || "N/A"}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Certificate Number</dt>
+                              <dd className="font-medium font-mono">{formData.safeguarding.certificateNumber || "N/A"}</dd>
+                            </div>
+                          </dl>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* EYFS */}
+                  {formData.eyfsChildminding && (
+                    <Card className={`${formData.eyfsChildminding?.completed === "Yes" ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200" : "bg-muted/30"}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <h3 className="text-lg font-semibold">EYFS/Childminding Course</h3>
+                          <Badge variant={formData.eyfsChildminding?.completed === "Yes" ? "default" : "secondary"}>
+                            {formData.eyfsChildminding?.completed || "No"}
+                          </Badge>
+                        </div>
+                        {formData.eyfsChildminding?.completed === "Yes" && (
+                          <dl className="grid md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Provider</dt>
+                              <dd className="font-medium">{formData.eyfsChildminding.provider || "N/A"}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Completion Date</dt>
+                              <dd className="font-medium">{formData.eyfsChildminding.completionDate || "N/A"}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Certificate Number</dt>
+                              <dd className="font-medium font-mono">{formData.eyfsChildminding.certificateNumber || "N/A"}</dd>
+                            </div>
+                          </dl>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Level 2 */}
+                  {formData.level2Qual && (
+                    <Card className={`${formData.level2Qual?.completed === "Yes" ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200" : "bg-muted/30"}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <h3 className="text-lg font-semibold">Level 2 Qualification</h3>
+                          <Badge variant={formData.level2Qual?.completed === "Yes" ? "default" : "secondary"}>
+                            {formData.level2Qual?.completed || "No"}
+                          </Badge>
+                        </div>
+                        {formData.level2Qual?.completed === "Yes" && (
+                          <dl className="grid md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Provider</dt>
+                              <dd className="font-medium">{formData.level2Qual.provider || "N/A"}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Completion Date</dt>
+                              <dd className="font-medium">{formData.level2Qual.completionDate || "N/A"}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground mb-1">Certificate Number</dt>
+                              <dd className="font-medium font-mono">{formData.level2Qual.certificateNumber || "N/A"}</dd>
+                            </div>
+                          </dl>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Employment Tab */}
+          <TabsContent value="employment" className="space-y-6">
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6">Employment History</h2>
+                
+                {formData.employmentHistory && formData.employmentHistory.length > 0 ? (
+                  <div className="space-y-4">
+                    {formData.employmentHistory.map((job: any, idx: number) => (
+                      <Card key={idx} className="bg-muted/30">
+                        <CardContent className="p-6">
+                          <h3 className="font-semibold text-lg mb-2">{job.role} at {job.employer}</h3>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {job.startDate} → {job.endDate}
+                          </p>
+                          <p className="text-sm"><span className="font-medium">Reason for leaving:</span> {job.reasonForLeaving}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No employment history provided</p>
+                )}
+
+                {(formData as any).employmentGaps && (
+                  <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 mt-4">
+                    <CardContent className="p-4">
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">Employment Gaps Explanation</p>
+                      <p className="text-sm text-amber-800 dark:text-amber-200">{(formData as any).employmentGaps}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6">References</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Reference 1 */}
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-4">Reference 1</h3>
+                      <dl className="space-y-3 text-sm">
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Full Name</dt>
+                          <dd className="font-medium">{(formData as any).reference1Name || "N/A"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Relationship</dt>
+                          <dd>{(formData as any).reference1Relationship || "N/A"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Contact</dt>
+                          <dd>{(formData as any).reference1Contact || "N/A"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Childcare Reference</dt>
+                          <dd>
+                            <Badge variant={(formData as any).reference1Childcare === "Yes" ? "default" : "secondary"}>
+                              {(formData as any).reference1Childcare || "N/A"}
+                            </Badge>
+                          </dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+
+                  {/* Reference 2 */}
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-4">Reference 2</h3>
+                      <dl className="space-y-3 text-sm">
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Full Name</dt>
+                          <dd className="font-medium">{(formData as any).reference2Name || "N/A"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Relationship</dt>
+                          <dd>{(formData as any).reference2Relationship || "N/A"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Contact</dt>
+                          <dd>{(formData as any).reference2Contact || "N/A"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted-foreground mb-1">Childcare Reference</dt>
+                          <dd>
+                            <Badge variant={(formData as any).reference2Childcare === "Yes" ? "default" : "secondary"}>
+                              {(formData as any).reference2Childcare || "N/A"}
+                            </Badge>
+                          </dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Household Tab */}
+          <TabsContent value="household" className="space-y-6">
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <Users className="h-6 w-6 text-primary" />
+                  Household Members
+                </h2>
+                
+                {formData.adults && formData.adults.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold mb-4">Adults in Household</h3>
+                    <div className="grid gap-4">
+                      {formData.adults.map((person: any, idx: number) => (
+                        <Card key={idx} className="bg-muted/30">
+                          <CardContent className="p-4">
+                            <p className="font-medium text-lg">{person.fullName}</p>
+                            <div className="grid md:grid-cols-2 gap-2 mt-2 text-sm text-muted-foreground">
+                              <p>Relationship: {person.relationship}</p>
+                              <p>DOB: {person.dob}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </dd>
+                    </div>
                   </div>
                 )}
+
                 {formData.children && formData.children.length > 0 && (
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Children in Household</dt>
-                    <dd className="mt-1 space-y-2">
+                    <h3 className="text-lg font-semibold mb-4">Children in Household</h3>
+                    <div className="grid gap-4">
                       {formData.children.map((child: any, idx: number) => (
-                        <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                          <div className="font-medium">{child.fullName}</div>
-                          <div className="text-muted-foreground">DOB: {child.dob}</div>
-                        </div>
+                        <Card key={idx} className="bg-muted/30">
+                          <CardContent className="p-4">
+                            <p className="font-medium text-lg">{child.fullName}</p>
+                            <p className="text-sm text-muted-foreground mt-1">DOB: {child.dob}</p>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </dd>
+                    </div>
                   </div>
                 )}
+
                 {(!formData.assistants || formData.assistants.length === 0) && 
                  (!formData.adults || formData.adults.length === 0) && 
                  (!formData.children || formData.children.length === 0) && (
-                  <p className="text-muted-foreground">No people connected to application</p>
+                  <p className="text-muted-foreground text-center py-8">No household members recorded</p>
                 )}
-              </dl>
-            </section>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Section 7a: Applicant DBS Check */}
-            <section className="border-l-4 border-primary pl-6 bg-primary/5 p-6 rounded-r">
-              <h2 className="text-2xl font-bold mb-4">Applicant DBS Check</h2>
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">Applicant Name</dt>
-                        <dd className="mt-1 font-medium">{`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                        <dd className="mt-1">{dbApplication?.email || "N/A"}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">Has DBS Certificate</dt>
-                        <dd className="mt-1">{dbApplication?.has_dbs || "N/A"}</dd>
-                      </div>
-                      {dbApplication?.has_dbs === "Yes" && dbApplication?.dbs_number && (
-                        <div>
-                          <dt className="text-sm font-medium text-muted-foreground">DBS Number</dt>
-                          <dd className="mt-1">{dbApplication.dbs_number}</dd>
-                        </div>
-                      )}
-                    </div>
+          {/* Compliance Tab */}
+          <TabsContent value="compliance" className="space-y-6">
+            {/* Applicant DBS */}
+            <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10">
+              <CardContent className="p-8">
+                <div className="flex items-start justify-between gap-6 mb-6">
+                  <div>
+                    <h2 className="text-2xl font-semibold mb-2 flex items-center gap-3">
+                      <Shield className="h-6 w-6 text-blue-600" />
+                      Applicant DBS Check
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Request DBS check directly for the main applicant
+                    </p>
                   </div>
                   <Button 
                     onClick={() => setIsApplicantDBSModalOpen(true)}
-                    variant="default"
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 bg-blue-600 hover:bg-blue-700"
                   >
-                    Request Applicant DBS
+                    <Shield className="h-4 w-4 mr-2" />
+                    Request DBS
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Send a DBS check request directly to the applicant. They will receive an email with instructions.
-                </p>
-              </div>
-            </section>
-
-            {/* Section 7b: DBS Compliance Tracking */}
-            <section className="border-l-4 border-blue-500 pl-6 bg-blue-50/50 dark:bg-blue-950/20 p-6 rounded-r">
-              <h2 className="text-2xl font-bold mb-4">Household Member DBS Compliance</h2>
-              <DBSComplianceSection
-                applicationId={id!}
-                applicantEmail={dbApplication?.email || ""}
-                applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
-              />
-            </section>
-
-            {/* Section 7c: Assistant & Co-childminder Compliance */}
-            <section className="border-l-4 border-purple-500 pl-6 bg-purple-50/50 dark:bg-purple-950/20 p-6 rounded-r mt-8">
-              <h2 className="text-2xl font-bold mb-4">Assistant & Co-childminder Compliance</h2>
-              <AssistantComplianceSection
-                applicationId={id!}
-                applicantEmail={dbApplication?.email || ""}
-                applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
-              />
-            </section>
-
-            {/* Section 8: Suitability */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">8. Suitability & Vetting</h2>
-              <dl className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Previous Registrations</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Previously Registered with Ofsted</dt>
-                      <dd className="mt-1">{formData.prevRegOfsted || "N/A"}</dd>
-                      {formData.prevRegOfsted === "Yes" && formData.prevRegOfstedDetails && formData.prevRegOfstedDetails.length > 0 && (
-                        <dd className="mt-2 space-y-2">
-                          {formData.prevRegOfstedDetails.map((reg: any, idx: number) => (
-                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                              <div><span className="font-medium">Regulator:</span> {reg.regulator}</div>
-                              <div><span className="font-medium">Registration Number:</span> {reg.registrationNumber}</div>
-                              <div><span className="font-medium">Dates:</span> {reg.dates}</div>
-                              <div><span className="font-medium">Status:</span> {reg.status}</div>
-                            </div>
-                          ))}
+                
+                <Card className="bg-white/50 dark:bg-gray-900/50">
+                  <CardContent className="p-6">
+                    <dl className="grid md:grid-cols-3 gap-6">
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">Applicant Name</dt>
+                        <dd className="text-lg font-semibold">{`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">Email</dt>
+                        <dd className="text-lg">{dbApplication?.email || "N/A"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">Has DBS</dt>
+                        <dd>
+                          <Badge variant={dbApplication?.has_dbs === "Yes" ? "default" : "secondary"} className="text-sm">
+                            {dbApplication?.has_dbs || "N/A"}
+                          </Badge>
                         </dd>
-                      )}
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Previously Registered with Agency</dt>
-                      <dd className="mt-1">{(formData as any).prevRegAgency || "N/A"}</dd>
-                      {(formData as any).prevRegAgency === "Yes" && formData.prevRegAgencyDetails && formData.prevRegAgencyDetails.length > 0 && (
-                        <dd className="mt-2 space-y-2">
-                          {formData.prevRegAgencyDetails.map((reg: any, idx: number) => (
-                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                              <div><span className="font-medium">Regulator:</span> {reg.regulator}</div>
-                              <div><span className="font-medium">Registration Number:</span> {reg.registrationNumber}</div>
-                              <div><span className="font-medium">Dates:</span> {reg.dates}</div>
-                              <div><span className="font-medium">Status:</span> {reg.status}</div>
-                            </div>
-                          ))}
-                        </dd>
-                      )}
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Previously Registered in Other UK Jurisdiction</dt>
-                      <dd className="mt-1">{(formData as any).prevRegOtherUK || "N/A"}</dd>
-                      {(formData as any).prevRegOtherUK === "Yes" && formData.prevRegOtherUKDetails && formData.prevRegOtherUKDetails.length > 0 && (
-                        <dd className="mt-2 space-y-2">
-                          {formData.prevRegOtherUKDetails.map((reg: any, idx: number) => (
-                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                              <div><span className="font-medium">Regulator:</span> {reg.regulator}</div>
-                              <div><span className="font-medium">Registration Number:</span> {reg.registrationNumber}</div>
-                              <div><span className="font-medium">Dates:</span> {reg.dates}</div>
-                              <div><span className="font-medium">Status:</span> {reg.status}</div>
-                            </div>
-                          ))}
-                        </dd>
-                      )}
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Previously Registered in EU/EEA</dt>
-                      <dd className="mt-1">{(formData as any).prevRegEU || "N/A"}</dd>
-                      {(formData as any).prevRegEU === "Yes" && formData.prevRegEUDetails && formData.prevRegEUDetails.length > 0 && (
-                        <dd className="mt-2 space-y-2">
-                          {formData.prevRegEUDetails.map((reg: any, idx: number) => (
-                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                              <div><span className="font-medium">Regulator:</span> {reg.regulator}</div>
-                              <div><span className="font-medium">Registration Number:</span> {reg.registrationNumber}</div>
-                              <div><span className="font-medium">Dates:</span> {reg.dates}</div>
-                              <div><span className="font-medium">Status:</span> {reg.status}</div>
-                            </div>
-                          ))}
-                        </dd>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-3">Health & Lifestyle</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Health Conditions</dt>
-                      <dd className="mt-1">{formData.healthCondition}</dd>
-                      {formData.healthCondition === "Yes" && formData.healthConditionDetails && (
-                        <dd className="mt-2 text-sm bg-muted/30 p-3 rounded">{formData.healthConditionDetails}</dd>
-                      )}
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Smoker</dt>
-                      <dd className="mt-1">{(formData as any).smoker || "N/A"}</dd>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-3">Suitability Declaration</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Disqualified from Childcare</dt>
-                      <dd className="mt-1">{(formData as any).disqualified || "N/A"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Social Services Involvement</dt>
-                      <dd className="mt-1">{formData.socialServices}</dd>
-                      {formData.socialServices === "Yes" && formData.socialServicesDetails && (
-                        <dd className="mt-2 text-sm bg-muted/30 p-3 rounded">{formData.socialServicesDetails}</dd>
-                      )}
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Other Circumstances</dt>
-                      <dd className="mt-1">{(formData as any).otherCircumstances || "N/A"}</dd>
-                      {(formData as any).otherCircumstances === "Yes" && (formData as any).otherCircumstancesDetails && (
-                        <dd className="mt-2 text-sm bg-muted/30 p-3 rounded">{(formData as any).otherCircumstancesDetails}</dd>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-3">DBS & Vetting</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Has DBS Certificate</dt>
-                      <dd className="mt-1">{(formData as any).hasDBS || "N/A"}</dd>
-                    </div>
-                    {(formData as any).hasDBS === "Yes" && (
-                      <>
+                      </div>
+                      {dbApplication?.has_dbs === "Yes" && dbApplication?.dbs_number && (
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">DBS Certificate Number</dt>
-                          <dd className="mt-1">{(formData as any).dbsNumber || "N/A"}</dd>
+                          <dt className="text-sm font-medium text-muted-foreground mb-1">DBS Number</dt>
+                          <dd className="text-lg font-mono">{dbApplication.dbs_number}</dd>
                         </div>
-                        <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Enhanced DBS</dt>
-                          <dd className="mt-1">{(formData as any).dbsEnhanced || "N/A"}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-sm font-medium text-muted-foreground">On DBS Update Service</dt>
-                          <dd className="mt-1">{(formData as any).dbsUpdate || "N/A"}</dd>
-                        </div>
-                      </>
-                    )}
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Criminal Offence History</dt>
-                      <dd className="mt-1">{formData.offenceHistory}</dd>
-                      {formData.offenceHistory === "Yes" && formData.offenceDetails && formData.offenceDetails.length > 0 && (
-                        <dd className="mt-2 space-y-2">
-                          {formData.offenceDetails.map((offence: any, idx: number) => (
-                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                              <div><span className="font-medium">Date:</span> {offence.date}</div>
-                              <div><span className="font-medium">Description:</span> {offence.description}</div>
-                              <div><span className="font-medium">Outcome:</span> {offence.outcome}</div>
-                            </div>
-                          ))}
-                        </dd>
                       )}
-                    </div>
-                  </div>
-                </div>
-              </dl>
-            </section>
+                    </dl>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
 
-            {/* Section 9: Declaration */}
-            <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">9. Declaration & Payment</h2>
-              <dl className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Final Declarations</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <div className={`w-5 h-5 flex-shrink-0 rounded border-2 ${formData.declarationAccuracy ? 'bg-primary border-primary' : 'border-muted'} flex items-center justify-center`}>
-                        {formData.declarationAccuracy && <span className="text-primary-foreground text-xs">✓</span>}
-                      </div>
-                      <div className="text-sm">Confirmed information is accurate and complete</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className={`w-5 h-5 flex-shrink-0 rounded border-2 ${(formData as any).declarationChangeNotification ? 'bg-primary border-primary' : 'border-muted'} flex items-center justify-center`}>
-                        {(formData as any).declarationChangeNotification && <span className="text-primary-foreground text-xs">✓</span>}
-                      </div>
-                      <div className="text-sm">Will notify of changes to circumstances</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className={`w-5 h-5 flex-shrink-0 rounded border-2 ${(formData as any).declarationInspectionCooperation ? 'bg-primary border-primary' : 'border-muted'} flex items-center justify-center`}>
-                        {(formData as any).declarationInspectionCooperation && <span className="text-primary-foreground text-xs">✓</span>}
-                      </div>
-                      <div className="text-sm">Agrees to cooperate with inspections</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className={`w-5 h-5 flex-shrink-0 rounded border-2 ${(formData as any).declarationInformationSharing ? 'bg-primary border-primary' : 'border-muted'} flex items-center justify-center`}>
-                        {(formData as any).declarationInformationSharing && <span className="text-primary-foreground text-xs">✓</span>}
-                      </div>
-                      <div className="text-sm">Consents to information sharing</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className={`w-5 h-5 flex-shrink-0 rounded border-2 ${(formData as any).declarationDataProcessing ? 'bg-primary border-primary' : 'border-muted'} flex items-center justify-center`}>
-                        {(formData as any).declarationDataProcessing && <span className="text-primary-foreground text-xs">✓</span>}
-                      </div>
-                      <div className="text-sm">Consents to data processing (GDPR)</div>
-                    </div>
-                  </div>
-                </div>
+            {/* Household Members Compliance */}
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <Users className="h-6 w-6 text-primary" />
+                  Household Members Compliance
+                </h2>
+                <DBSComplianceSection
+                  applicationId={id!}
+                  applicantEmail={dbApplication?.email || ""}
+                  applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
+                />
+              </CardContent>
+            </Card>
 
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-3">Electronic Signature</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Full Legal Name</dt>
-                      <dd className="mt-1 font-medium">{formData.signatureFullName}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Date Signed</dt>
-                      <dd className="mt-1">{formData.signatureDate ? format(new Date(formData.signatureDate), "MMMM dd, yyyy") : "N/A"}</dd>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-3">Payment Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Payment Method</dt>
-                      <dd className="mt-1">{formData.paymentMethod || "N/A"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Application Fee</dt>
-                      <dd className="mt-1 font-medium">
-                        {formData.ageGroups?.includes("0-5") || formData.ageGroups?.includes("5-7") ? "£200" : "£100"}
-                      </dd>
-                    </div>
-                  </div>
-                </div>
-              </dl>
-            </section>
-          </div>
-        </Card>
+            {/* Assistants Compliance */}
+            <Card className="border">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  <Briefcase className="h-6 w-6 text-primary" />
+                  Assistants & Co-childminders Compliance
+                </h2>
+                <AssistantComplianceSection
+                  applicationId={id!}
+                  applicantEmail={dbApplication?.email || ""}
+                  applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <RequestApplicantDBSModal
           open={isApplicantDBSModalOpen}
@@ -1617,4 +1592,4 @@ const ApplicationDetail = () => {
   );
 };
 
-  export default ApplicationDetail;
+export default ApplicationDetail;
