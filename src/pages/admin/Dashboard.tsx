@@ -2,19 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DBSCertificateHealthCard } from "@/components/admin/DBSCertificateHealthCard";
-import { GlobalComplianceDashboard } from "@/components/admin/GlobalComplianceDashboard";
 import AdminLayout from "@/components/admin/AdminLayout";
 
 interface DashboardMetrics {
-  totalApplications: number;
   pendingApplications: number;
-  approvedApplications: number;
-  rejectedApplications: number;
-  todayApplications: number;
+  activeEmployees: number;
+  criticalAlerts: number;
+  completionRate: number;
 }
 
 const AdminDashboard = () => {
@@ -22,11 +19,10 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalApplications: 0,
     pendingApplications: 0,
-    approvedApplications: 0,
-    rejectedApplications: 0,
-    todayApplications: 0,
+    activeEmployees: 0,
+    criticalAlerts: 0,
+    completionRate: 0,
   });
 
   useEffect(() => {
@@ -35,28 +31,41 @@ const AdminDashboard = () => {
 
   const fetchMetrics = async () => {
     try {
-      const { data: applications, error } = await supabase
+      // Fetch applications
+      const { data: applications } = await supabase
         .from('childminder_applications' as any)
-        .select('status, created_at');
+        .select('status');
 
-      if (error) throw error;
+      const pending = (applications || []).filter((app: any) => app.status === 'pending').length;
 
-      const appData = (applications || []) as unknown as Array<{ status: string; created_at: string }>;
-      const today = new Date().toDateString();
-      const todayApps = appData.filter(
-        app => new Date(app.created_at).toDateString() === today
-      ).length || 0;
+      // Fetch employees
+      const { data: employees } = await supabase
+        .from('employees' as any)
+        .select('employment_status');
 
-      const pending = appData.filter(app => app.status === 'pending').length || 0;
-      const approved = appData.filter(app => app.status === 'approved').length || 0;
-      const rejected = appData.filter(app => app.status === 'rejected').length || 0;
+      const active = (employees || []).filter((emp: any) => emp.employment_status === 'active').length;
+
+      // Fetch household members for compliance
+      const { data: householdMembers } = await supabase
+        .from('employee_household_members' as any)
+        .select('dbs_status, compliance_status');
+
+      const criticalCount = (householdMembers || []).filter((m: any) => 
+        m.compliance_status === 'overdue' || m.dbs_status === 'expired'
+      ).length;
+
+      const compliant = (householdMembers || []).filter((m: any) => 
+        m.dbs_status === 'received'
+      ).length;
+
+      const total = householdMembers?.length || 0;
+      const rate = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
       setMetrics({
-        totalApplications: appData.length || 0,
         pendingApplications: pending,
-        approvedApplications: approved,
-        rejectedApplications: rejected,
-        todayApplications: todayApps,
+        activeEmployees: active,
+        criticalAlerts: criticalCount,
+        completionRate: rate,
       });
     } catch (error: any) {
       toast({
@@ -69,49 +78,20 @@ const AdminDashboard = () => {
     }
   };
 
-  const metricCards = [
-    {
-      title: "Pending",
-      value: metrics.pendingApplications,
-      icon: Clock,
-      trend: "+12%",
-    },
-    {
-      title: "Approved",
-      value: metrics.approvedApplications,
-      icon: CheckCircle,
-      trend: "+8%",
-    },
-    {
-      title: "Today",
-      value: metrics.todayApplications,
-      icon: Users,
-      trend: "0%",
-    },
-  ];
-
   if (loading) {
     return (
       <AdminLayout>
         <div className="space-y-8">
-          <div className="space-y-2">
-            <div className="h-9 w-48 bg-muted rounded animate-shimmer" />
-            <div className="h-5 w-72 bg-muted rounded animate-shimmer" />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-card border rounded-lg p-6">
-                <div className="space-y-3">
-                  <div className="h-4 w-24 bg-muted rounded animate-shimmer" />
-                  <div className="h-8 w-16 bg-muted rounded animate-shimmer" />
+          <div className="h-12 w-64 bg-muted rounded animate-shimmer" />
+          <div className="grid gap-6 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-card border rounded-xl p-8">
+                <div className="space-y-4">
+                  <div className="h-6 w-32 bg-muted rounded animate-shimmer" />
+                  <div className="h-12 w-24 bg-muted rounded animate-shimmer" />
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="bg-card border rounded-lg p-6">
-            <div className="h-72 bg-muted rounded animate-shimmer" />
           </div>
         </div>
       </AdminLayout>
@@ -120,39 +100,125 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-12">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Monitor applications and compliance
-          </p>
+          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {metricCards.map((metric) => (
-            <Card key={metric.title} className="border">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {metric.title}
-                    </p>
-                    <p className="text-3xl font-bold tracking-tight">
-                      {metric.value}
-                    </p>
-                  </div>
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <metric.icon className="h-5 w-5 text-primary" />
-                  </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {/* Pending Applications */}
+          <Card 
+            className="border-0 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/10 cursor-pointer hover:scale-[1.02] transition-transform"
+            onClick={() => navigate('/admin/applications?status=pending')}
+          >
+            <CardContent className="p-8">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 bg-amber-500 rounded-xl">
+                  <Clock className="h-6 w-6 text-white" />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
+                Pending Review
+              </p>
+              <p className="text-4xl font-bold text-amber-950 dark:text-amber-50">
+                {metrics.pendingApplications}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Active Employees */}
+          <Card 
+            className="border-0 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10 cursor-pointer hover:scale-[1.02] transition-transform"
+            onClick={() => navigate('/admin/employees')}
+          >
+            <CardContent className="p-8">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 bg-blue-500 rounded-xl">
+                  <CheckCircle2 className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                Active Employees
+              </p>
+              <p className="text-4xl font-bold text-blue-950 dark:text-blue-50">
+                {metrics.activeEmployees}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Critical Alerts */}
+          <Card 
+            className="border-0 bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/20 dark:to-red-900/10 cursor-pointer hover:scale-[1.02] transition-transform"
+            onClick={() => navigate('/admin/employees')}
+          >
+            <CardContent className="p-8">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 bg-red-500 rounded-xl">
+                  <AlertCircle className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">
+                Critical Alerts
+              </p>
+              <p className="text-4xl font-bold text-red-950 dark:text-red-50">
+                {metrics.criticalAlerts}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Completion Rate */}
+          <Card className="border-0 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/20 dark:to-emerald-900/10">
+            <CardContent className="p-8">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 bg-emerald-500 rounded-xl">
+                  <CheckCircle2 className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100 mb-1">
+                DBS Completion
+              </p>
+              <p className="text-4xl font-bold text-emerald-950 dark:text-emerald-50">
+                {metrics.completionRate}%
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="space-y-4">
-          <DBSCertificateHealthCard />
-          <GlobalComplianceDashboard />
+        {/* Quick Actions */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card 
+            className="border hover:border-primary cursor-pointer transition-colors group"
+            onClick={() => navigate('/admin/applications')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold mb-1">Review Applications</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Process new childminder applications
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="border hover:border-primary cursor-pointer transition-colors group"
+            onClick={() => navigate('/admin/employees')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold mb-1">Manage Employees</h3>
+                  <p className="text-sm text-muted-foreground">
+                    View and update employee records
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AdminLayout>

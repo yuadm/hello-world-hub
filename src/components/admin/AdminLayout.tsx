@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, LayoutDashboard, FileText, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "./AppSidebar";
+import { NavLink } from "@/components/NavLink";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,6 +12,7 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
 
@@ -68,36 +68,47 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     );
   }
 
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-            <div className="flex h-16 items-center gap-4 px-6">
-              <SidebarTrigger />
-              
-              <div className="flex-1" />
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleLogout}
-                className="gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
-            </div>
-          </header>
+  const navItems = [
+    { to: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/admin/applications", icon: FileText, label: "Applications" },
+    { to: "/admin/employees", icon: Users, label: "Employees" },
+  ];
 
-          <main className="flex-1 p-6 animate-fade-up">
-            {children}
-          </main>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Floating Navbar */}
+      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-card/80 backdrop-blur-xl border shadow-lg rounded-full px-2 py-2">
+        <div className="flex items-center gap-1">
+          <div className="px-4 py-2 font-bold text-sm">ChildMinderPro</div>
+          <div className="w-px h-6 bg-border mx-2" />
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all hover:bg-muted/50"
+              activeClassName="bg-primary text-primary-foreground"
+            >
+              <item.icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{item.label}</span>
+            </NavLink>
+          ))}
+          <div className="w-px h-6 bg-border mx-2" />
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={handleLogout}
+            className="gap-2 rounded-full"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
         </div>
-      </div>
-    </SidebarProvider>
+      </nav>
+
+      <main className="pt-24 px-6 pb-12 max-w-7xl mx-auto animate-fade-up">
+        {children}
+      </main>
+    </div>
   );
 };
 
