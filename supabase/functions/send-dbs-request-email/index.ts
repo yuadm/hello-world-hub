@@ -19,6 +19,8 @@ interface DBSRequestData {
   employeeId?: string;
   isEmployee?: boolean;
   isApplicant?: boolean;
+  isAssistant?: boolean;
+  applicantEmail?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -27,11 +29,74 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { memberId, memberEmail, applicantName, employeeName, employeeId, isEmployee, isApplicant }: DBSRequestData = await req.json();
+    const { memberId, memberEmail, applicantName, employeeName, employeeId, isEmployee, isApplicant, isAssistant, applicantEmail }: DBSRequestData = await req.json();
     
-    console.log("Sending DBS request for member:", memberId, "isEmployee:", isEmployee, "isApplicant:", isApplicant);
+    console.log("Sending DBS request for member:", memberId, "isEmployee:", isEmployee, "isApplicant:", isApplicant, "isAssistant:", isAssistant);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // If this is an assistant DBS request
+    if (isAssistant) {
+      const { data: assistantData, error: assistantError } = await supabase
+        .from("assistant_dbs_tracking")
+        .select("*, childminder_applications!inner(first_name, last_name, email)")
+        .eq("id", memberId)
+        .single();
+
+      if (assistantError || !assistantData) {
+        console.error("Assistant not found:", assistantError);
+        throw new Error("Assistant not found");
+      }
+
+      const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": brevoApiKey!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { 
+            name: "Childminder Registration", 
+            email: "yuadm3@gmail.com"
+          },
+          to: [{ email: memberEmail, name: `${assistantData.first_name} ${assistantData.last_name}` }],
+          subject: "DBS Check Required - Action Needed",
+          htmlContent: `
+            <h1>DBS Check Required</h1>
+            <p>Dear ${assistantData.first_name} ${assistantData.last_name},</p>
+            <p>You have been listed as an assistant for ${assistantData.childminder_applications.first_name} ${assistantData.childminder_applications.last_name}, who is applying for childminder registration.</p>
+            <p>As part of this process, we need you to complete an Enhanced DBS (Disclosure and Barring Service) check.</p>
+            
+            <p><strong>What you need to do:</strong></p>
+            <ul>
+              <li>Please contact the registration team to arrange your DBS check</li>
+              <li>You will need to provide identification documents</li>
+              <li>The process typically takes 2-4 weeks</li>
+            </ul>
+
+            <p><strong>Important:</strong> The childminder registration cannot proceed until all required DBS checks are completed.</p>
+
+            <p>If you have any questions or need to schedule your DBS check, please contact:</p>
+            <p>Email: yuadm3@gmail.com</p>
+
+            <p>Best regards,<br>Childminder Registration Team</p>
+          `,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        console.error("Failed to send assistant DBS request email");
+        throw new Error("Failed to send email");
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        message: "Assistant DBS request sent successfully"
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     // If this is an applicant DBS request, skip member lookup and just send email
     if (isApplicant) {
