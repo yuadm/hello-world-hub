@@ -38,6 +38,15 @@ export interface PersonEntry {
   dob: string;
 }
 
+export interface AssistantEntry {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  role: "Assistant" | "Co-childminder" | "";
+  email: string;
+  phone: string;
+}
+
 export interface ChildEntry {
   fullName: string;
   dob: string;
@@ -123,7 +132,7 @@ export interface ChildminderApplication {
   reference2Childcare: "Yes" | "No";
 
   // Section 7: People Connected
-  assistants?: PersonEntry[];
+  assistants?: AssistantEntry[];
   adultsInHome: "Yes" | "No";
   adults?: PersonEntry[];
   childrenInHome: "Yes" | "No";

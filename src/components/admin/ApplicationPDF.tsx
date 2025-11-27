@@ -699,12 +699,28 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
 
           {application.assistants && application.assistants.length > 0 && (
             <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Assistants</Text>
+              <Text style={styles.subsectionTitle}>Assistants & Co-childminders</Text>
               {application.assistants.map((person, index) => (
                 <View key={index} style={styles.card}>
-                  <Text style={styles.cardTitle}>{person.fullName}</Text>
-                  <Text style={styles.cardSubtitle}>Relationship: {person.relationship}</Text>
-                  <Text style={styles.cardText}>Date of Birth: {formatDate(person.dob)}</Text>
+                  <Text style={styles.cardTitle}>{person.firstName} {person.lastName}</Text>
+                  <View style={styles.qualGrid}>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Role</Text>
+                      <Text style={styles.cardText}>{person.role || "N/A"}</Text>
+                    </View>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Date of Birth</Text>
+                      <Text style={styles.cardText}>{formatDate(person.dob)}</Text>
+                    </View>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Email</Text>
+                      <Text style={styles.cardText}>{person.email || "N/A"}</Text>
+                    </View>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Mobile</Text>
+                      <Text style={styles.cardText}>{person.phone || "N/A"}</Text>
+                    </View>
+                  </View>
                 </View>
               ))}
             </View>

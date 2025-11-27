@@ -2,6 +2,7 @@ import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
 import { GovUKInput } from "./GovUKInput";
 import { GovUKRadio } from "./GovUKRadio";
+import { GovUKSelect } from "./GovUKSelect";
 import { GovUKButton } from "./GovUKButton";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -23,7 +24,7 @@ export const Section7People = ({ form }: Props) => {
   const showHouseholdQuestions = premisesType === "Domestic" || !premisesType;
 
   const addAssistant = () => {
-    setValue("assistants", [...assistants, { fullName: "", relationship: "", dob: "" }]);
+    setValue("assistants", [...assistants, { firstName: "", lastName: "", dob: "", role: "", email: "", phone: "" }]);
   };
 
   const removeAssistant = (index: number) => {
@@ -60,47 +61,78 @@ export const Section7People = ({ form }: Props) => {
 
       {/* Assistants */}
       {workWithOthers === "Yes" && (
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold">Assistants/Co-Childminders</h3>
-          <p className="text-base">
-            Please provide details of anyone who will assist you with childminding or work alongside you.
-          </p>
+        <div className="space-y-6">
+          <div className="p-4 border-l-[5px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
+            <h3 className="text-xl font-bold mb-2">Assistants and Co-childminders Details</h3>
+            <p className="text-sm">
+              Anyone working with you must complete a full suitability check (Form CMA-A1). 
+              Please provide their basic details below so we can initiate their application.
+            </p>
+          </div>
+          
           {assistants.map((_, index) => (
             <div
               key={index}
               className="p-6 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))] space-y-4"
             >
-              <div className="flex justify-between items-center">
-                <h4 className="font-semibold">Assistant {index + 1}</h4>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-semibold text-lg">Person {index + 1}</h4>
                 <button
                   type="button"
                   onClick={() => removeAssistant(index)}
-                  className="text-[hsl(var(--govuk-red))] hover:underline flex items-center gap-1"
+                  className="text-[hsl(var(--govuk-red))] hover:underline flex items-center gap-1 font-bold"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Remove
+                  Remove this person
                 </button>
               </div>
-              <GovUKInput
-                label="Full name"
-                required
-                {...register(`assistants.${index}.fullName`)}
-              />
-              <GovUKInput
-                label="Relationship to you"
-                hint="e.g., Partner, Friend, Employee, etc."
-                required
-                {...register(`assistants.${index}.relationship`)}
-              />
-              <GovUKInput
-                label="Date of birth"
-                type="date"
-                required
-                widthClass="10"
-                {...register(`assistants.${index}.dob`)}
-              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <GovUKInput
+                  label="First name"
+                  required
+                  {...register(`assistants.${index}.firstName`)}
+                />
+                <GovUKInput
+                  label="Last name"
+                  required
+                  {...register(`assistants.${index}.lastName`)}
+                />
+                
+                <GovUKInput
+                  label="Date of birth"
+                  hint="dd/mm/yyyy"
+                  type="date"
+                  required
+                  {...register(`assistants.${index}.dob`)}
+                />
+                <GovUKSelect
+                  label="Role"
+                  required
+                  options={[
+                    { value: "", label: "Select role" },
+                    { value: "Assistant", label: "Assistant" },
+                    { value: "Co-childminder", label: "Co-childminder" }
+                  ]}
+                  {...register(`assistants.${index}.role`)}
+                />
+                
+                <GovUKInput
+                  label="Email address"
+                  type="email"
+                  required
+                  {...register(`assistants.${index}.email`)}
+                />
+                <GovUKInput
+                  label="Mobile number"
+                  type="tel"
+                  required
+                  {...register(`assistants.${index}.phone`)}
+                />
+              </div>
             </div>
           ))}
+          
           <GovUKButton
             type="button"
             variant="secondary"
@@ -108,7 +140,7 @@ export const Section7People = ({ form }: Props) => {
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            Add assistant
+            Add person
           </GovUKButton>
         </div>
       )}

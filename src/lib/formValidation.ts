@@ -268,9 +268,33 @@ export function validateSection7(data: Partial<ChildminderApplication>): Validat
       errors.push("Please add at least one assistant");
     } else {
       data.assistants.forEach((asst, index) => {
-        if (!asst.fullName) errors.push(`Assistant ${index + 1}: Full name is required`);
-        if (!asst.relationship) errors.push(`Assistant ${index + 1}: Relationship is required`);
+        if (!asst.firstName) errors.push(`Assistant ${index + 1}: First name is required`);
+        if (!asst.lastName) errors.push(`Assistant ${index + 1}: Last name is required`);
         if (!asst.dob) errors.push(`Assistant ${index + 1}: Date of birth is required`);
+        
+        // Age validation - must be 18+
+        if (asst.dob) {
+          const age = calculateAge(asst.dob);
+          if (age < 18) {
+            errors.push(`Assistant ${index + 1}: Must be at least 18 years old`);
+          }
+        }
+        
+        if (!asst.role || !asst.role.trim()) {
+          errors.push(`Assistant ${index + 1}: Role is required`);
+        }
+        
+        if (!asst.email) {
+          errors.push(`Assistant ${index + 1}: Email address is required`);
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(asst.email)) {
+          errors.push(`Assistant ${index + 1}: Invalid email address format`);
+        }
+        
+        if (!asst.phone) {
+          errors.push(`Assistant ${index + 1}: Mobile number is required`);
+        } else if (!/^[\d\s+()-]{10,}$/.test(asst.phone)) {
+          errors.push(`Assistant ${index + 1}: Invalid phone number format`);
+        }
       });
     }
   }
