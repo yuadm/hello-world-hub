@@ -21,6 +21,8 @@ import {
   validateAssistantSection6,
 } from "@/lib/assistantFormValidation";
 
+type AssistantSource = "applicant" | "employee";
+
 export default function AssistantForm() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -31,6 +33,7 @@ export default function AssistantForm() {
   const [submitting, setSubmitting] = useState(false);
   const [connectionInfo, setConnectionInfo] = useState<any>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [assistantSource, setAssistantSource] = useState<AssistantSource>("applicant");
   
   const [formData, setFormData] = useState<AssistantFormData>({
     title: "", firstName: "", middleNames: "", lastName: "",
@@ -59,7 +62,10 @@ export default function AssistantForm() {
 
   const loadFormData = async () => {
     try {
-      const { data: assistant, error: assistantError } = await supabase
+      console.log("[AssistantForm] Loading form data for token:", token);
+
+      // First, try to find the token in assistant_dbs_tracking (applicant flow)
+      const { data: applicantAssistant } = await supabase
         .from("assistant_dbs_tracking")
         .select(`
           *,
@@ -70,77 +76,142 @@ export default function AssistantForm() {
         .eq("form_token", token)
         .maybeSingle();
 
-      if (assistantError || !assistant) {
-        throw new Error("Form token not found or expired");
+      if (applicantAssistant) {
+        console.log("[AssistantForm] Found token in assistant_dbs_tracking (applicant flow)");
+        setAssistantSource("applicant");
+        
+        setConnectionInfo({
+          applicantName: `${applicantAssistant.childminder_applications.first_name} ${applicantAssistant.childminder_applications.last_name}`,
+          applicantAddress: applicantAssistant.childminder_applications.current_address,
+          assistantName: `${applicantAssistant.first_name} ${applicantAssistant.last_name}`,
+          assistantId: applicantAssistant.id,
+          applicationId: applicantAssistant.application_id,
+        });
+
+        // Load existing form from assistant_forms
+        await loadApplicantForm(token!);
+        setLoading(false);
+        return;
       }
 
-      setConnectionInfo({
-        applicantName: `${assistant.childminder_applications.first_name} ${assistant.childminder_applications.last_name}`,
-        applicantAddress: assistant.childminder_applications.current_address,
-        assistantName: `${assistant.first_name} ${assistant.last_name}`,
-        assistantId: assistant.id,
-        applicationId: assistant.application_id,
-      });
-
-      // Load existing form if any
-      const { data: existingForm } = await supabase
-        .from("assistant_forms")
-        .select("*")
+      // If not found in applicant flow, try employee_assistants (employee flow)
+      console.log("[AssistantForm] Token not found in applicant flow, trying employee flow");
+      
+      const { data: employeeAssistant } = await supabase
+        .from("employee_assistants")
+        .select(`
+          *,
+          employees!inner(
+            id, first_name, last_name, address_line_1, address_line_2, town_city, postcode
+          )
+        `)
         .eq("form_token", token)
         .maybeSingle();
 
-      if (existingForm && existingForm.status !== "submitted") {
-        // Restore draft
-        setFormData({
-          title: existingForm.title || "",
-          firstName: existingForm.first_name || "",
-          middleNames: existingForm.middle_names || "",
-          lastName: existingForm.last_name || "",
-          otherNames: Array.isArray(existingForm.previous_names) && existingForm.previous_names.length > 0 ? "Yes" : "No",
-          previousNames: (existingForm.previous_names as any[]) || [],
-          dob: existingForm.date_of_birth || "",
-          birthTown: existingForm.birth_town || "",
-          sex: existingForm.sex || "",
-          niNumber: existingForm.ni_number || "",
-          homeAddressLine1: (existingForm.current_address as any)?.line1 || "",
-          homeAddressLine2: (existingForm.current_address as any)?.line2 || "",
-          homeTown: (existingForm.current_address as any)?.town || "",
-          homePostcode: (existingForm.current_address as any)?.postcode || "",
-          homeMoveIn: (existingForm.current_address as any)?.moveIn || "",
-          addressHistory: (existingForm.address_history as any[]) || [],
-          livedOutsideUK: existingForm.lived_outside_uk || "No",
-          employmentHistory: (existingForm.employment_history as any[]) || [],
-          employmentGaps: existingForm.employment_gaps || "",
-          pfaCompleted: existingForm.pfa_completed || "",
-          safeguardingCompleted: existingForm.safeguarding_completed || "",
-          prevReg: existingForm.previous_registration || "No",
-          prevRegInfo: (existingForm.previous_registration_details as string) || "",
-          hasDBS: existingForm.has_dbs || "No",
-          dbsNumber: existingForm.dbs_number || "",
-          dbsUpdate: existingForm.dbs_update_service || "",
-          offenceHistory: existingForm.criminal_history || "No",
-          offenceDetails: existingForm.criminal_history_details || "",
-          disqualified: existingForm.disqualified || "No",
-          socialServices: existingForm.social_services || "No",
-          socialServicesInfo: existingForm.social_services_details || "",
-          healthCondition: existingForm.health_conditions || "No",
-          healthConditionDetails: existingForm.health_conditions_details || "",
-          smoker: existingForm.smoker || "",
-          consentChecks: existingForm.consent_checks || false,
-          declarationTruth: existingForm.declaration_truth || false,
-          declarationNotify: existingForm.declaration_notify || false,
-          signatureFullName: existingForm.signature_name || "",
-          signatureDate: existingForm.signature_date || new Date().toISOString().split('T')[0]
+      if (employeeAssistant) {
+        console.log("[AssistantForm] Found token in employee_assistants (employee flow)");
+        setAssistantSource("employee");
+        
+        const employeeAddress = {
+          line1: employeeAssistant.employees.address_line_1,
+          line2: employeeAssistant.employees.address_line_2,
+          town: employeeAssistant.employees.town_city,
+          postcode: employeeAssistant.employees.postcode,
+        };
+
+        setConnectionInfo({
+          applicantName: `${employeeAssistant.employees.first_name} ${employeeAssistant.employees.last_name}`,
+          applicantAddress: employeeAddress,
+          assistantName: `${employeeAssistant.first_name} ${employeeAssistant.last_name}`,
+          assistantId: employeeAssistant.id,
+          employeeId: employeeAssistant.employee_id,
         });
-        toast.success("Draft form loaded");
+
+        // Load existing form from employee_assistant_forms
+        await loadEmployeeForm(token!);
+        setLoading(false);
+        return;
       }
 
-      setLoading(false);
+      // Token not found in either table
+      console.error("[AssistantForm] Token not found in either table");
+      throw new Error("Form token not found or expired");
+
     } catch (error: any) {
-      console.error("Error loading form:", error);
+      console.error("[AssistantForm] Error loading form:", error);
       toast.error(error.message || "Failed to load form");
       navigate("/");
     }
+  };
+
+  const loadApplicantForm = async (formToken: string) => {
+    const { data: existingForm } = await supabase
+      .from("assistant_forms")
+      .select("*")
+      .eq("form_token", formToken)
+      .maybeSingle();
+
+    if (existingForm && existingForm.status !== "submitted") {
+      restoreFormData(existingForm);
+      toast.success("Draft form loaded");
+    }
+  };
+
+  const loadEmployeeForm = async (formToken: string) => {
+    const { data: existingForm } = await supabase
+      .from("employee_assistant_forms")
+      .select("*")
+      .eq("form_token", formToken)
+      .maybeSingle();
+
+    if (existingForm && existingForm.status !== "submitted") {
+      restoreFormData(existingForm);
+      toast.success("Draft form loaded");
+    }
+  };
+
+  const restoreFormData = (existingForm: any) => {
+    setFormData({
+      title: existingForm.title || "",
+      firstName: existingForm.first_name || "",
+      middleNames: existingForm.middle_names || "",
+      lastName: existingForm.last_name || "",
+      otherNames: Array.isArray(existingForm.previous_names) && existingForm.previous_names.length > 0 ? "Yes" : "No",
+      previousNames: (existingForm.previous_names as any[]) || [],
+      dob: existingForm.date_of_birth || "",
+      birthTown: existingForm.birth_town || "",
+      sex: existingForm.sex || "",
+      niNumber: existingForm.ni_number || "",
+      homeAddressLine1: (existingForm.current_address as any)?.line1 || (existingForm.current_address as any)?.address_line_1 || "",
+      homeAddressLine2: (existingForm.current_address as any)?.line2 || (existingForm.current_address as any)?.address_line_2 || "",
+      homeTown: (existingForm.current_address as any)?.town || "",
+      homePostcode: (existingForm.current_address as any)?.postcode || "",
+      homeMoveIn: (existingForm.current_address as any)?.moveIn || (existingForm.current_address as any)?.move_in_date || "",
+      addressHistory: (existingForm.address_history as any[]) || [],
+      livedOutsideUK: existingForm.lived_outside_uk || "No",
+      employmentHistory: (existingForm.employment_history as any[]) || [],
+      employmentGaps: existingForm.employment_gaps || "",
+      pfaCompleted: existingForm.pfa_completed || "",
+      safeguardingCompleted: existingForm.safeguarding_completed || "",
+      prevReg: existingForm.previous_registration || "No",
+      prevRegInfo: (existingForm.previous_registration_details as string) || "",
+      hasDBS: existingForm.has_dbs || "No",
+      dbsNumber: existingForm.dbs_number || "",
+      dbsUpdate: existingForm.dbs_update_service || "",
+      offenceHistory: existingForm.criminal_history || "No",
+      offenceDetails: existingForm.criminal_history_details || "",
+      disqualified: existingForm.disqualified || "No",
+      socialServices: existingForm.social_services || "No",
+      socialServicesInfo: existingForm.social_services_details || "",
+      healthCondition: existingForm.health_conditions || "No",
+      healthConditionDetails: existingForm.health_conditions_details || "",
+      smoker: existingForm.smoker || "",
+      consentChecks: existingForm.consent_checks || false,
+      declarationTruth: existingForm.declaration_truth || false,
+      declarationNotify: existingForm.declaration_notify || false,
+      signatureFullName: existingForm.signature_name || "",
+      signatureDate: existingForm.signature_date || new Date().toISOString().split('T')[0]
+    });
   };
 
   const validateSection = (section: number): boolean => {
@@ -177,8 +248,6 @@ export default function AssistantForm() {
 
     try {
       const payload = {
-        assistant_id: connectionInfo.assistantId,
-        application_id: connectionInfo.applicationId,
         form_token: token,
         status: "draft",
         title: formData.title,
@@ -186,7 +255,7 @@ export default function AssistantForm() {
         middle_names: formData.middleNames,
         last_name: formData.lastName,
         previous_names: formData.otherNames === "Yes" ? formData.previousNames : [],
-        date_of_birth: formData.dob,
+        date_of_birth: formData.dob || null,
         birth_town: formData.birthTown,
         sex: formData.sex,
         ni_number: formData.niNumber,
@@ -220,14 +289,33 @@ export default function AssistantForm() {
         declaration_truth: formData.declarationTruth,
         declaration_notify: formData.declarationNotify,
         signature_name: formData.signatureFullName,
-        signature_date: formData.signatureDate
+        signature_date: formData.signatureDate || null
       };
 
-      const { error } = await supabase
-        .from("assistant_forms")
-        .upsert(payload, { onConflict: "form_token" });
+      if (assistantSource === "employee") {
+        // Save to employee_assistant_forms
+        const { error } = await supabase
+          .from("employee_assistant_forms")
+          .upsert({
+            ...payload,
+            employee_assistant_id: connectionInfo.assistantId,
+            employee_id: connectionInfo.employeeId,
+          }, { onConflict: "form_token" });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Save to assistant_forms
+        const { error } = await supabase
+          .from("assistant_forms")
+          .upsert({
+            ...payload,
+            assistant_id: connectionInfo.assistantId,
+            application_id: connectionInfo.applicationId,
+          }, { onConflict: "form_token" });
+
+        if (error) throw error;
+      }
+
       toast.success("Draft saved");
     } catch (error: any) {
       console.error("Error saving draft:", error);
@@ -247,7 +335,11 @@ export default function AssistantForm() {
       await saveDraft();
 
       const { error } = await supabase.functions.invoke("submit-assistant-form", {
-        body: { token, formData }
+        body: { 
+          token, 
+          formData,
+          isEmployee: assistantSource === "employee"
+        }
       });
 
       if (error) throw error;

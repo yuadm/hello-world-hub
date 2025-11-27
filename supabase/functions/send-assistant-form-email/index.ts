@@ -33,7 +33,10 @@ serve(async (req) => {
       .eq("id", assistantId)
       .single();
 
-    if (assistantError) throw assistantError;
+    if (assistantError) {
+      console.error(`[send-assistant-form-email] Error fetching assistant from ${tableName}:`, assistantError);
+      throw assistantError;
+    }
 
     // Generate secure token
     const formToken = crypto.randomUUID();
@@ -51,34 +54,49 @@ serve(async (req) => {
       })
       .eq("id", assistantId);
 
-    if (updateError) throw updateError;
-
-    // For employees, we still need to get the application_id from the employee
-    let applicationId = assistant.application_id;
-    if (isEmployee) {
-      const { data: employee } = await supabase
-        .from("employees")
-        .select("application_id")
-        .eq("id", assistant.employee_id)
-        .single();
-      
-      applicationId = employee?.application_id || null;
+    if (updateError) {
+      console.error(`[send-assistant-form-email] Error updating ${tableName}:`, updateError);
+      throw updateError;
     }
 
-    // Create draft form record (only if we have an application_id)
-    if (applicationId) {
+    // Create draft form record in the appropriate table
+    if (isEmployee) {
+      // For employee assistants, insert into employee_assistant_forms
       const { error: formError } = await supabase
-        .from("assistant_forms")
+        .from("employee_assistant_forms")
         .insert({
-          assistant_id: assistantId,
-          application_id: applicationId,
+          employee_assistant_id: assistantId,
+          employee_id: assistant.employee_id,
           form_token: formToken,
           status: "draft",
         });
 
       if (formError) {
-        console.error("[send-assistant-form-email] Failed to create form record:", formError);
+        console.error("[send-assistant-form-email] Failed to create employee_assistant_forms record:", formError);
         // Don't throw - continue with email sending
+      } else {
+        console.log("[send-assistant-form-email] Created employee_assistant_forms record successfully");
+      }
+    } else {
+      // For applicant assistants, get the application_id and insert into assistant_forms
+      const applicationId = assistant.application_id;
+      
+      if (applicationId) {
+        const { error: formError } = await supabase
+          .from("assistant_forms")
+          .insert({
+            assistant_id: assistantId,
+            application_id: applicationId,
+            form_token: formToken,
+            status: "draft",
+          });
+
+        if (formError) {
+          console.error("[send-assistant-form-email] Failed to create assistant_forms record:", formError);
+          // Don't throw - continue with email sending
+        } else {
+          console.log("[send-assistant-form-email] Created assistant_forms record successfully");
+        }
       }
     }
 
