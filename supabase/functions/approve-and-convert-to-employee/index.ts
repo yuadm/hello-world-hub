@@ -226,10 +226,74 @@ Deno.serve(async (req) => {
         throw new Error(`Failed to copy household members: ${insertMembersError.message}`);
       }
 
-      console.log('Household members copied:', employeeHouseholdMembers.length);
+    console.log('Household members copied:', employeeHouseholdMembers.length);
+  }
+
+  // Fetch assistants from application
+  const { data: assistants, error: assistantsError } = await supabase
+    .from('assistant_dbs_tracking')
+    .select('*')
+    .eq('application_id', applicationId);
+
+  if (assistantsError) {
+    console.error('Failed to fetch assistants:', assistantsError.message);
+    // Don't throw - continue even if no assistants
+  }
+
+  console.log('Assistants fetched:', assistants?.length || 0);
+
+  // Copy assistants to employee_assistants
+  if (assistants && assistants.length > 0) {
+    const employeeAssistants = await Promise.all(assistants.map(async (assistant: any) => {
+      // Check if assistant has a completed form
+      const { data: formData } = await supabase
+        .from('assistant_forms')
+        .select('form_token')
+        .eq('assistant_id', assistant.id)
+        .eq('status', 'submitted')
+        .maybeSingle();
+
+      return {
+        employee_id: employee.id,
+        first_name: assistant.first_name,
+        last_name: assistant.last_name,
+        email: assistant.email,
+        phone: assistant.phone,
+        role: assistant.role,
+        date_of_birth: assistant.date_of_birth,
+        dbs_status: assistant.dbs_status || 'not_requested',
+        dbs_certificate_number: assistant.dbs_certificate_number,
+        dbs_certificate_date: assistant.dbs_certificate_date,
+        dbs_certificate_expiry_date: assistant.dbs_certificate_expiry_date,
+        dbs_request_date: assistant.dbs_request_date,
+        form_token: formData?.form_token || assistant.form_token || null,
+        form_status: assistant.form_status || 'not_sent',
+        form_sent_date: assistant.form_sent_date,
+        form_submitted_date: assistant.form_submitted_date || (formData ? new Date().toISOString() : null),
+        compliance_status: assistant.compliance_status || 'pending',
+        risk_level: assistant.risk_level || 'low',
+        notes: assistant.notes,
+        reminder_count: assistant.reminder_count || 0,
+        last_reminder_date: assistant.last_reminder_date,
+        reminder_history: assistant.reminder_history || [],
+        last_contact_date: assistant.last_contact_date,
+        follow_up_due_date: assistant.follow_up_due_date,
+        expiry_reminder_sent: assistant.expiry_reminder_sent || false,
+      };
+    }));
+
+    const { error: insertAssistantsError } = await supabase
+      .from('employee_assistants')
+      .insert(employeeAssistants);
+
+    if (insertAssistantsError) {
+      throw new Error(`Failed to copy assistants: ${insertAssistantsError.message}`);
     }
 
-    // Update application status to approved
+    console.log('Assistants copied:', employeeAssistants.length);
+  }
+
+  // Update application status to approved
     const { error: updateError } = await supabase
       .from('childminder_applications')
       .update({ status: 'approved' })
@@ -246,6 +310,7 @@ Deno.serve(async (req) => {
         success: true,
         employeeId: employee.id,
         householdMembersCount: householdMembers?.length || 0,
+        assistantsCount: assistants?.length || 0,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

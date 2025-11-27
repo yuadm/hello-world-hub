@@ -17,13 +17,18 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { assistantId, customEmail, applicantEmail, applicantName } = await req.json();
+    const { assistantId, customEmail, applicantEmail, applicantName, isEmployee, employeeEmail, employeeName } = await req.json();
 
-    console.log(`[send-assistant-form-email] Processing for assistant: ${assistantId}`);
+    console.log(`[send-assistant-form-email] Processing for assistant: ${assistantId}, isEmployee: ${isEmployee}`);
+
+    // Determine which table to query based on isEmployee flag
+    const tableName = isEmployee ? "employee_assistants" : "assistant_dbs_tracking";
+    const parentEmail = isEmployee ? employeeEmail : applicantEmail;
+    const parentName = isEmployee ? employeeName : applicantName;
 
     // Get assistant details
     const { data: assistant, error: assistantError } = await supabase
-      .from("assistant_dbs_tracking")
+      .from(tableName)
       .select("*")
       .eq("id", assistantId)
       .single();
@@ -35,28 +40,47 @@ serve(async (req) => {
 
     // Update assistant with form token
     const { error: updateError } = await supabase
-      .from("assistant_dbs_tracking")
+      .from(tableName)
       .update({
         form_token: formToken,
         form_status: "sent",
         form_sent_date: new Date().toISOString(),
         email: customEmail || assistant.email,
+        reminder_count: (assistant.reminder_count || 0) + 1,
+        last_reminder_date: new Date().toISOString(),
       })
       .eq("id", assistantId);
 
     if (updateError) throw updateError;
 
-    // Create draft form record
-    const { error: formError } = await supabase
-      .from("assistant_forms")
-      .insert({
-        assistant_id: assistantId,
-        application_id: assistant.application_id,
-        form_token: formToken,
-        status: "draft",
-      });
+    // For employees, we still need to get the application_id from the employee
+    let applicationId = assistant.application_id;
+    if (isEmployee) {
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("application_id")
+        .eq("id", assistant.employee_id)
+        .single();
+      
+      applicationId = employee?.application_id || null;
+    }
 
-    if (formError) throw formError;
+    // Create draft form record (only if we have an application_id)
+    if (applicationId) {
+      const { error: formError } = await supabase
+        .from("assistant_forms")
+        .insert({
+          assistant_id: assistantId,
+          application_id: applicationId,
+          form_token: formToken,
+          status: "draft",
+        });
+
+      if (formError) {
+        console.error("[send-assistant-form-email] Failed to create form record:", formError);
+        // Don't throw - continue with email sending
+      }
+    }
 
     // Send email to assistant via Brevo
     const assistantEmailAddress = customEmail || assistant.email;
@@ -88,7 +112,7 @@ serve(async (req) => {
               
               <p>Dear ${assistant.first_name},</p>
               
-              <p>You have been asked to complete a <strong>CMA-A1 Suitability Check</strong> form because you will be working as a <strong>${assistant.role}</strong> for ${applicantName}.</p>
+              <p>You have been asked to complete a <strong>CMA-A1 Suitability Check</strong> form because you will be working as a <strong>${assistant.role}</strong> for ${parentName}.</p>
               
               <p>This is a mandatory requirement for anyone working in a childminding setting. The form will ask about your personal details, address history, professional background, and suitability to work with children.</p>
               
@@ -105,7 +129,7 @@ serve(async (req) => {
                 <li>All information will be kept confidential</li>
               </ul>
               
-              <p>If you have any questions or need assistance, please contact ${applicantName} at ${applicantEmail}.</p>
+              <p>If you have any questions or need assistance, please contact ${parentName} at ${parentEmail}.</p>
               
               <p>Thank you for your cooperation.</p>
               
@@ -130,8 +154,8 @@ serve(async (req) => {
 
     console.log(`[send-assistant-form-email] Email sent successfully to ${assistantEmailAddress}`);
 
-    // Send notification to applicant
-    const applicantNotificationResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+    // Send notification to parent (applicant or employee)
+    const parentNotificationResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "accept": "application/json",
@@ -143,7 +167,7 @@ serve(async (req) => {
           name: "Ready Kids Registration",
           email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@readykids.co.uk",
         },
-        to: [{ email: applicantEmail, name: applicantName }],
+        to: [{ email: parentEmail, name: parentName }],
         subject: "CMA-A1 Form Sent Successfully",
         htmlContent: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -154,7 +178,7 @@ serve(async (req) => {
             <div style="padding: 30px; background-color: #f9fafb;">
               <h2 style="color: #1e40af; margin-top: 0;">Form Request Sent</h2>
               
-              <p>Dear ${applicantName},</p>
+              <p>Dear ${parentName},</p>
               
               <p>The CMA-A1 Suitability Check form has been successfully sent to:</p>
               
@@ -175,8 +199,8 @@ serve(async (req) => {
       }),
     });
 
-    if (!applicantNotificationResponse.ok) {
-      console.error("[send-assistant-form-email] Failed to send applicant notification");
+    if (!parentNotificationResponse.ok) {
+      console.error("[send-assistant-form-email] Failed to send parent notification");
     }
 
     return new Response(

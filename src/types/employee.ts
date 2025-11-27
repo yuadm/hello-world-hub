@@ -73,3 +73,34 @@ export interface EmployeeHouseholdMember {
   expiry_reminder_sent: boolean;
   turning_16_notification_sent: boolean;
 }
+
+export interface EmployeeAssistant {
+  id: string;
+  employee_id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  date_of_birth: string;
+  dbs_status: DBSStatus;
+  dbs_certificate_number: string | null;
+  dbs_certificate_date: string | null;
+  dbs_certificate_expiry_date: string | null;
+  dbs_request_date: string | null;
+  form_token: string | null;
+  form_status: string | null;
+  form_sent_date: string | null;
+  form_submitted_date: string | null;
+  compliance_status: string | null;
+  risk_level: string | null;
+  notes: string | null;
+  reminder_count: number;
+  last_reminder_date: string | null;
+  reminder_history: any;
+  last_contact_date: string | null;
+  follow_up_due_date: string | null;
+  expiry_reminder_sent: boolean;
+  created_at: string;
+  updated_at: string;
+}

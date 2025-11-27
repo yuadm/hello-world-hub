@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Employee, EmployeeHouseholdMember } from "@/types/employee";
 import { EmployeeDBSComplianceSection } from "@/components/admin/EmployeeDBSComplianceSection";
+import { EmployeeAssistantComplianceSection } from "@/components/admin/EmployeeAssistantComplianceSection";
 import { 
   calculateAge, 
   daysUntil16thBirthday, 
@@ -199,6 +200,12 @@ const AdminEmployeeDetail = () => {
         </div>
 
         <EmployeeDBSComplianceSection
+          employeeId={id!}
+          employeeEmail={employee.email}
+          employeeName={`${employee.first_name} ${employee.last_name}`}
+        />
+
+        <EmployeeAssistantComplianceSection
           employeeId={id!}
           employeeEmail={employee.email}
           employeeName={`${employee.first_name} ${employee.last_name}`}

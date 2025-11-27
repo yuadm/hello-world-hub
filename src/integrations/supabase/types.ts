@@ -526,6 +526,107 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_assistants: {
+        Row: {
+          compliance_status: string | null
+          created_at: string | null
+          date_of_birth: string
+          dbs_certificate_date: string | null
+          dbs_certificate_expiry_date: string | null
+          dbs_certificate_number: string | null
+          dbs_request_date: string | null
+          dbs_status: Database["public"]["Enums"]["dbs_status"] | null
+          email: string | null
+          employee_id: string
+          expiry_reminder_sent: boolean | null
+          first_name: string
+          follow_up_due_date: string | null
+          form_sent_date: string | null
+          form_status: string | null
+          form_submitted_date: string | null
+          form_token: string | null
+          id: string
+          last_contact_date: string | null
+          last_name: string
+          last_reminder_date: string | null
+          notes: string | null
+          phone: string | null
+          reminder_count: number | null
+          reminder_history: Json | null
+          risk_level: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          compliance_status?: string | null
+          created_at?: string | null
+          date_of_birth: string
+          dbs_certificate_date?: string | null
+          dbs_certificate_expiry_date?: string | null
+          dbs_certificate_number?: string | null
+          dbs_request_date?: string | null
+          dbs_status?: Database["public"]["Enums"]["dbs_status"] | null
+          email?: string | null
+          employee_id: string
+          expiry_reminder_sent?: boolean | null
+          first_name: string
+          follow_up_due_date?: string | null
+          form_sent_date?: string | null
+          form_status?: string | null
+          form_submitted_date?: string | null
+          form_token?: string | null
+          id?: string
+          last_contact_date?: string | null
+          last_name: string
+          last_reminder_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          reminder_count?: number | null
+          reminder_history?: Json | null
+          risk_level?: string | null
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          compliance_status?: string | null
+          created_at?: string | null
+          date_of_birth?: string
+          dbs_certificate_date?: string | null
+          dbs_certificate_expiry_date?: string | null
+          dbs_certificate_number?: string | null
+          dbs_request_date?: string | null
+          dbs_status?: Database["public"]["Enums"]["dbs_status"] | null
+          email?: string | null
+          employee_id?: string
+          expiry_reminder_sent?: boolean | null
+          first_name?: string
+          follow_up_due_date?: string | null
+          form_sent_date?: string | null
+          form_status?: string | null
+          form_submitted_date?: string | null
+          form_token?: string | null
+          id?: string
+          last_contact_date?: string | null
+          last_name?: string
+          last_reminder_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          reminder_count?: number | null
+          reminder_history?: Json | null
+          risk_level?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_assistants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_household_members: {
         Row: {
           age_group_changed_at: string | null
