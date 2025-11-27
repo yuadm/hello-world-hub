@@ -8,6 +8,7 @@ import Join from "./pages/Join";
 import Apply from "./pages/Apply";
 import NotFound from "./pages/NotFound";
 import HouseholdForm from "./pages/HouseholdForm";
+import AssistantForm from "./pages/AssistantForm";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminApplications from "./pages/admin/Applications";

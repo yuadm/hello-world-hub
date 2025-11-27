@@ -32,6 +32,7 @@ import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
 import { getValidatorForSection } from "@/lib/formValidation";
 import { DBSComplianceSection } from "@/components/admin/DBSComplianceSection";
+import { AssistantComplianceSection } from "@/components/admin/AssistantComplianceSection";
 import { RequestApplicantDBSModal } from "@/components/admin/RequestApplicantDBSModal";
 import AdminLayout from "@/components/admin/AdminLayout";
 
