@@ -114,29 +114,36 @@ const AdminEmployees = () => {
 
   return (
     <AdminLayout>
-      <Card className="rounded-2xl border-0 shadow-apple-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold tracking-tight">Employees</CardTitle>
-          <CardDescription>
-            View and manage all approved childminders
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-6">
+      <div className="mb-8 animate-fade-in">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="h-1 w-12 rounded-full bg-gradient-to-r from-accent to-primary" />
+          <span className="text-sm font-medium text-accent uppercase tracking-widest">Employee Management</span>
+        </div>
+        <h2 className="text-4xl font-bold tracking-tight mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Employees
+        </h2>
+        <p className="text-muted-foreground text-lg">
+          View and manage all approved childminders
+        </p>
+      </div>
+
+      <Card className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm shadow-card animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <CardHeader className="border-b border-border/50 pb-6">
+          <div className="flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 rounded-xl border-border/50 bg-muted/30 transition-all duration-200 focus:bg-background"
+                className="pl-12 h-12 rounded-xl border-border/50 bg-muted/30 focus:bg-muted/50 transition-all duration-300 text-base"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] rounded-xl border-border/50">
+              <SelectTrigger className="w-[200px] h-12 rounded-xl border-border/50 bg-muted/30">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent className="rounded-xl border-border/50 bg-popover">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="on_leave">On Leave</SelectItem>
@@ -144,41 +151,46 @@ const AdminEmployees = () => {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="rounded-xl border border-border/50 overflow-hidden">
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Email</TableHead>
-                  <TableHead className="font-semibold">Service Type</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                <TableRow className="bg-muted/20 hover:bg-muted/20 border-b border-border/50">
+                  <TableHead className="font-bold text-foreground">Name</TableHead>
+                  <TableHead className="font-bold text-foreground">Email</TableHead>
+                  <TableHead className="font-bold text-foreground">Service Type</TableHead>
+                  <TableHead className="font-bold text-foreground">Status</TableHead>
+                  <TableHead className="font-bold text-foreground">Start Date</TableHead>
+                  <TableHead className="text-right font-bold text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEmployees.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No employees found
+                    <TableCell colSpan={6} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-3">
+                        <Users className="h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-muted-foreground text-lg">No employees found</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredEmployees.map((emp) => (
+                  filteredEmployees.map((emp, index) => (
                     <TableRow 
                       key={emp.id}
-                      className="border-b border-border/50 hover:bg-muted/20 transition-colors duration-150"
+                      className="border-b border-border/30 hover:bg-muted/30 transition-all duration-300 group animate-fade-in"
+                      style={{ animationDelay: `${0.05 * index}s` }}
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-semibold text-foreground py-4">
                         {emp.first_name} {emp.last_name}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{emp.email}</TableCell>
-                      <TableCell>{emp.service_type || "N/A"}</TableCell>
+                      <TableCell className="text-foreground/80">{emp.service_type || "N/A"}</TableCell>
                       <TableCell>
                         <Badge 
                           variant={getEmploymentStatusConfig(emp.employment_status).variant}
-                          className="rounded-full px-3 py-1"
+                          className="rounded-full px-4 py-1.5 font-medium"
                         >
                           {getEmploymentStatusConfig(emp.employment_status).label}
                         </Badge>
@@ -193,7 +205,7 @@ const AdminEmployees = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => navigate(`/admin/employees/${emp.id}`)}
-                          className="rounded-lg hover:bg-muted/50 transition-all duration-150"
+                          className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-300 opacity-0 group-hover:opacity-100"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View

@@ -143,48 +143,62 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
-        <h2 className="text-3xl font-semibold tracking-tight mb-2">Welcome back, Admin</h2>
-        <p className="text-muted-foreground">
-          Here's an overview of childminder applications
+      <div className="mb-8 animate-fade-in">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="h-1 w-12 rounded-full bg-gradient-to-r from-primary to-secondary" />
+          <span className="text-sm font-medium text-primary uppercase tracking-widest">Admin Dashboard</span>
+        </div>
+        <h2 className="text-4xl font-bold tracking-tight mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Welcome back, Admin
+        </h2>
+        <p className="text-muted-foreground text-lg">
+          Monitor and manage childminder operations in real-time
         </p>
       </div>
 
       {/* DBS Certificate Health */}
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <DBSCertificateHealthCard />
       </div>
 
       {/* Global DBS Compliance Dashboard */}
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
         <GlobalComplianceDashboard />
       </div>
 
       {/* Application Statistics */}
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold tracking-tight mb-4">Application Statistics</h3>
+      <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        <h3 className="text-2xl font-bold tracking-tight mb-6 flex items-center gap-3">
+          <div className="h-8 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+          Application Overview
+        </h3>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {metricCards.map((metric) => (
+        {metricCards.map((metric, index) => (
           <Card 
             key={metric.title} 
-            className="group rounded-2xl border-0 bg-card shadow-apple-sm hover:shadow-apple-lg transition-all duration-300 hover:-translate-y-1"
+            className="group relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm hover:shadow-hover hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 animate-fade-in"
+            style={{ animationDelay: `${0.4 + index * 0.1}s` }}
           >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {metric.title}
               </CardTitle>
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${metric.gradient} flex items-center justify-center shadow-apple-sm`}>
-                <metric.icon className="h-6 w-6 text-white" />
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${metric.gradient} flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform duration-300`}>
+                <metric.icon className="h-7 w-7 text-white" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-semibold tracking-tight">{metric.value}</div>
-              <p className="text-sm text-muted-foreground mt-1">
+            <CardContent className="relative z-10">
+              <div className="text-5xl font-bold tracking-tight mb-2 bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">
+                {metric.value}
+              </div>
+              <p className="text-sm text-muted-foreground">
                 {metric.description}
               </p>
             </CardContent>
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
           </Card>
         ))}
       </div>
