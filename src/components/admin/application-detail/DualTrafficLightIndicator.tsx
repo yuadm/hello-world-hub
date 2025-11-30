@@ -6,19 +6,44 @@ interface DualTrafficLightIndicatorProps {
   className?: string;
 }
 
-const statusConfig = {
+const statusConfig: Record<"compliant" | "pending" | "critical", { activeLight: "red" | "amber" | "green"; label: string }> = {
   compliant: {
-    color: "bg-green-500",
+    activeLight: "green",
     label: "Submitted",
   },
   pending: {
-    color: "bg-amber-500",
+    activeLight: "amber",
     label: "Awaiting response",
   },
   critical: {
-    color: "bg-red-500",
+    activeLight: "red",
     label: "Action required",
   },
+};
+
+const TrafficLight = ({ activeLight }: { activeLight: "red" | "amber" | "green" }) => {
+  return (
+    <div className="bg-gray-900 rounded-full p-0.5 flex flex-col gap-0.5 w-5">
+      <div
+        className={cn(
+          "w-4 h-4 rounded-full transition-colors",
+          activeLight === "red" ? "bg-red-500" : "bg-gray-700"
+        )}
+      />
+      <div
+        className={cn(
+          "w-4 h-4 rounded-full transition-colors",
+          activeLight === "amber" ? "bg-amber-500" : "bg-gray-700"
+        )}
+      />
+      <div
+        className={cn(
+          "w-4 h-4 rounded-full transition-colors",
+          activeLight === "green" ? "bg-green-500" : "bg-gray-700"
+        )}
+      />
+    </div>
+  );
 };
 
 export const DualTrafficLightIndicator = ({
@@ -32,13 +57,13 @@ export const DualTrafficLightIndicator = ({
   return (
     <div className={cn("flex items-center gap-4 text-sm", className)}>
       <div className="flex items-center gap-2">
-        <div className={cn("w-3 h-3 rounded-full flex-shrink-0", formConfig.color)} />
+        <TrafficLight activeLight={formConfig.activeLight} />
         <span className="text-muted-foreground">
           Form: <span className="text-foreground">{formConfig.label}</span>
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <div className={cn("w-3 h-3 rounded-full flex-shrink-0", dbsConfig.color)} />
+        <TrafficLight activeLight={dbsConfig.activeLight} />
         <span className="text-muted-foreground">
           DBS: <span className="text-foreground">{dbsConfig.label}</span>
         </span>
