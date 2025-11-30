@@ -234,7 +234,7 @@ export const UnifiedHouseholdComplianceCard = ({
 
   if (loading) {
     return (
-      <AppleCard className="p-8 md:col-span-2">
+      <AppleCard className="p-6">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-muted rounded w-1/3" />
           <div className="h-4 bg-muted rounded w-1/2" />
@@ -245,7 +245,7 @@ export const UnifiedHouseholdComplianceCard = ({
 
   return (
     <>
-      <AppleCard className="p-8 md:col-span-2">
+      <AppleCard className="p-6">
         <div className="flex items-start justify-between gap-6 mb-6">
           <div>
             <h2 className="text-lg font-semibold tracking-tight mb-1">🏠 Household Members</h2>
