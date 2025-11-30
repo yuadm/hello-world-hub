@@ -1,26 +1,40 @@
 import { AppleCard } from "@/components/admin/AppleCard";
-import { Users, Mail } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Users, Mail, CheckCircle2 } from "lucide-react";
 
 interface ReferencesCardProps {
   reference1Name: string;
   reference1Relationship: string;
   reference1Contact: string;
+  reference1Childcare?: string;
   reference2Name: string;
   reference2Relationship: string;
   reference2Contact: string;
+  reference2Childcare?: string;
+  childVolunteered?: string;
+  childVolunteeredConsent?: boolean;
 }
 
 export const ReferencesCard = ({
   reference1Name,
   reference1Relationship,
   reference1Contact,
+  reference1Childcare,
   reference2Name,
   reference2Relationship,
   reference2Contact,
+  reference2Childcare,
+  childVolunteered,
+  childVolunteeredConsent,
 }: ReferencesCardProps) => {
-  const ReferenceItem = ({ name, relationship, contact }: { name: string; relationship: string; contact: string }) => (
+  const ReferenceItem = ({ name, relationship, contact, isChildcare }: { name: string; relationship: string; contact: string; isChildcare?: string }) => (
     <div className="rounded-lg bg-muted/30 p-4">
-      <div className="font-medium mb-2">{name || "N/A"}</div>
+      <div className="flex items-start justify-between mb-2">
+        <div className="font-medium">{name || "N/A"}</div>
+        {isChildcare === "Yes" && (
+          <Badge variant="secondary" className="text-xs">Childcare Ref</Badge>
+        )}
+      </div>
       <div className="space-y-1 text-xs text-muted-foreground">
         <div>Relationship: {relationship || "N/A"}</div>
         <div className="flex items-center gap-1">
@@ -45,6 +59,7 @@ export const ReferencesCard = ({
             name={reference1Name}
             relationship={reference1Relationship}
             contact={reference1Contact}
+            isChildcare={reference1Childcare}
           />
         </div>
 
@@ -54,8 +69,25 @@ export const ReferencesCard = ({
             name={reference2Name}
             relationship={reference2Relationship}
             contact={reference2Contact}
+            isChildcare={reference2Childcare}
           />
         </div>
+
+        {childVolunteered === "Yes" && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2 rounded-lg bg-muted/30 p-3">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <div>
+                <div className="text-sm font-medium">Volunteered with Children</div>
+                {childVolunteeredConsent && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Consent given for reference contact
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppleCard>
   );

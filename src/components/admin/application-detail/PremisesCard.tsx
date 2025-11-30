@@ -6,6 +6,10 @@ interface PremisesCardProps {
   outdoorSpace: string;
   pets: string;
   petsDetails?: string;
+  sameAddress?: string;
+  premisesAddress?: any;
+  useAdditionalPremises?: string;
+  additionalPremises?: any[];
 }
 
 export const PremisesCard = ({
@@ -13,6 +17,10 @@ export const PremisesCard = ({
   outdoorSpace,
   pets,
   petsDetails,
+  sameAddress,
+  premisesAddress,
+  useAdditionalPremises,
+  additionalPremises,
 }: PremisesCardProps) => {
   return (
     <AppleCard className="p-6">
@@ -60,6 +68,36 @@ export const PremisesCard = ({
             </div>
           )}
         </div>
+
+        {sameAddress === "No" && premisesAddress && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="text-xs font-medium text-muted-foreground mb-2">
+              Childcare Address (Different)
+            </div>
+            <div className="text-sm rounded-lg bg-muted/30 p-3">
+              {premisesAddress.line1}
+              {premisesAddress.line2 && <>, {premisesAddress.line2}</>}
+              <br />
+              {premisesAddress.town}, {premisesAddress.postcode}
+            </div>
+          </div>
+        )}
+
+        {useAdditionalPremises === "Yes" && additionalPremises && additionalPremises.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="text-xs font-medium text-muted-foreground mb-2">
+              Additional Premises
+            </div>
+            <div className="space-y-2">
+              {additionalPremises.map((premise: any, idx: number) => (
+                <div key={idx} className="text-sm rounded-lg bg-muted/30 p-3">
+                  <div className="font-medium">{premise.address}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{premise.reason}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </AppleCard>
   );

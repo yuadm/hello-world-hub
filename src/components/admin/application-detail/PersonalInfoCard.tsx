@@ -11,6 +11,9 @@ interface PersonalInfoCardProps {
   dob: string;
   gender: string;
   niNumber: string;
+  rightToWork?: string;
+  previousNames?: any[];
+  placeOfBirth?: string;
 }
 
 export const PersonalInfoCard = ({
@@ -23,6 +26,9 @@ export const PersonalInfoCard = ({
   dob,
   gender,
   niNumber,
+  rightToWork,
+  previousNames,
+  placeOfBirth,
 }: PersonalInfoCardProps) => {
   const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
     <div className="flex items-start gap-3">
@@ -58,6 +64,24 @@ export const PersonalInfoCard = ({
           </div>
         </div>
         <InfoRow icon={CreditCard} label="NI Number" value={niNumber} />
+        {placeOfBirth && <InfoRow icon={User} label="Place of Birth" value={placeOfBirth} />}
+        {rightToWork && <InfoRow icon={User} label="Right to Work" value={rightToWork} />}
+        
+        {previousNames && previousNames.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="text-xs font-medium text-muted-foreground mb-2">Previous Names</div>
+            <div className="space-y-2">
+              {previousNames.map((name: any, idx: number) => (
+                <div key={idx} className="text-sm rounded-lg bg-muted/30 p-2">
+                  <div className="font-medium">{name.fullName}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {name.dateFrom} - {name.dateTo}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </AppleCard>
   );
