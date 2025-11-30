@@ -6,6 +6,7 @@ import { Mail, Download, FileCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TrafficLightIndicator } from "@/components/admin/application-detail/TrafficLightIndicator";
+import { DualTrafficLightIndicator } from "@/components/admin/application-detail/DualTrafficLightIndicator";
 import { UnifiedSendAssistantFormModal } from "./UnifiedSendAssistantFormModal";
 import { UnifiedRequestAssistantDBSModal } from "./UnifiedRequestAssistantDBSModal";
 import { UnifiedRecordAssistantCertificateModal } from "./UnifiedRecordAssistantCertificateModal";
@@ -160,6 +161,23 @@ export const UnifiedAssistantComplianceCard = ({
     return "critical";
   };
 
+  const getFormStatus = (assistant: Assistant, hasForm: boolean): "compliant" | "pending" | "critical" => {
+    if (hasForm) return "compliant";
+    if (assistant.form_status === "sent" || assistant.form_token) return "pending";
+    return "critical";
+  };
+
+  const getDBSStatus = (assistant: Assistant): "compliant" | "pending" | "critical" => {
+    if (assistant.dbs_status === "received" && assistant.dbs_certificate_expiry_date) {
+      const daysUntilExpiry = differenceInDays(new Date(assistant.dbs_certificate_expiry_date), new Date());
+      if (daysUntilExpiry < 0) return "critical";
+      if (daysUntilExpiry < 30) return "pending";
+      return "compliant";
+    }
+    if (assistant.dbs_status === "requested") return "pending";
+    return "critical";
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; label: string }> = {
       compliant: { variant: "default", label: "Compliant" },
@@ -282,18 +300,11 @@ export const UnifiedAssistantComplianceCard = ({
                           <span className="text-sm text-muted-foreground">({assistant.role})</span>
                           {getStatusBadge(status)}
                         </div>
-                        <div className="text-sm text-muted-foreground mt-0.5">
-                          {hasForm && <span className="text-green-600 dark:text-green-400">Form: ✓ Submitted • </span>}
-                          {status === "compliant" && assistant.dbs_certificate_expiry_date && (
-                            <>DBS: Valid until {format(new Date(assistant.dbs_certificate_expiry_date), "dd MMM yyyy")}</>
-                          )}
-                          {status === "pending" && assistant.dbs_status === "requested" && (
-                            <>DBS: Requested - Awaiting response</>
-                          )}
-                          {status === "critical" && assistant.dbs_status === "not_requested" && (
-                            <>DBS: Not requested - Action required</>
-                          )}
-                        </div>
+                        <DualTrafficLightIndicator 
+                          formStatus={getFormStatus(assistant, hasForm)}
+                          dbsStatus={getDBSStatus(assistant)}
+                          className="mt-1"
+                        />
                       </div>
                     </div>
                   </div>
