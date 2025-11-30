@@ -14,10 +14,11 @@ import { PersonalInfoCard } from "@/components/admin/application-detail/Personal
 import { ServiceDetailsCard } from "@/components/admin/application-detail/ServiceDetailsCard";
 import { AddressCard } from "@/components/admin/application-detail/AddressCard";
 import { PremisesCard } from "@/components/admin/application-detail/PremisesCard";
-import { QuickStatsCard } from "@/components/admin/application-detail/QuickStatsCard";
+import { EmploymentHistoryCard } from "@/components/admin/application-detail/EmploymentHistoryCard";
 import { QualificationsCard } from "@/components/admin/application-detail/QualificationsCard";
 import { DBSVettingCard } from "@/components/admin/application-detail/DBSVettingCard";
 import { ReferencesCard } from "@/components/admin/application-detail/ReferencesCard";
+import { DeclarationCard } from "@/components/admin/application-detail/DeclarationCard";
 import { Shimmer } from "@/components/ui/shimmer";
 
 interface DBApplication {
@@ -55,6 +56,43 @@ interface DBApplication {
   applicant_references: any;
   address_history: any;
   employment_gaps: string;
+  right_to_work: string;
+  previous_names: any;
+  place_of_birth: string;
+  service_hours: any;
+  overnight_care: string;
+  service_ofsted_registered: string;
+  service_ofsted_number: string;
+  address_gaps: string;
+  lived_outside_uk: string;
+  military_base: string;
+  same_address: string;
+  premises_address: any;
+  use_additional_premises: string;
+  additional_premises: any;
+  employment_history: any;
+  current_employment: string;
+  previous_registration: string;
+  registration_details: any;
+  health_conditions: string;
+  health_details: string;
+  smoker: string;
+  disqualified: string;
+  safeguarding_concerns: string;
+  safeguarding_details: string;
+  other_circumstances: string;
+  other_circumstances_details: string;
+  convictions_details: string;
+  child_volunteered: string;
+  child_volunteered_consent: boolean;
+  declaration_confirmed: boolean;
+  declaration_change_notification: boolean;
+  declaration_inspection_cooperation: boolean;
+  declaration_information_sharing: boolean;
+  declaration_data_processing: boolean;
+  declaration_signature: string;
+  declaration_date: string;
+  payment_method: string;
 }
 
 const ApplicationDetailNew = () => {
@@ -216,7 +254,8 @@ const ApplicationDetailNew = () => {
   const serviceCapacity = dbApplication.service_capacity || {};
   const peopleInHousehold = dbApplication.people_in_household || {};
   const references = dbApplication.applicant_references || {};
-  const addressHistoryYears = Math.floor((dbApplication.address_history?.length || 0) * 0.5) + 2;
+  const serviceHours = dbApplication.service_hours || [];
+  const registrationDetails = dbApplication.registration_details || {};
 
   return (
     <AdminLayout>
@@ -257,6 +296,9 @@ const ApplicationDetailNew = () => {
             dob={dbApplication.date_of_birth}
             gender={dbApplication.gender}
             niNumber={dbApplication.national_insurance_number}
+            rightToWork={dbApplication.right_to_work}
+            previousNames={dbApplication.previous_names}
+            placeOfBirth={dbApplication.place_of_birth}
           />
           
           <ServiceDetailsCard
@@ -266,12 +308,20 @@ const ApplicationDetailNew = () => {
             localAuthority={dbApplication.service_local_authority}
             workWithOthers={dbApplication.work_with_others}
             numberOfAssistants={dbApplication.number_of_assistants}
+            serviceHours={serviceHours}
+            overnightCare={dbApplication.overnight_care}
+            ofstedRegistered={dbApplication.service_ofsted_registered}
+            ofstedNumber={dbApplication.service_ofsted_number}
           />
 
           {/* Row 2 */}
           <AddressCard
             address={dbApplication.current_address}
             moveIn={dbApplication.home_move_in}
+            addressHistory={dbApplication.address_history}
+            addressGaps={dbApplication.address_gaps}
+            livedOutsideUk={dbApplication.lived_outside_uk}
+            militaryBase={dbApplication.military_base}
           />
 
           <PremisesCard
@@ -279,12 +329,16 @@ const ApplicationDetailNew = () => {
             outdoorSpace={dbApplication.outdoor_space}
             pets={dbApplication.premises_animals}
             petsDetails={dbApplication.premises_animal_details}
+            sameAddress={dbApplication.same_address}
+            premisesAddress={dbApplication.premises_address}
+            useAdditionalPremises={dbApplication.use_additional_premises}
+            additionalPremises={dbApplication.additional_premises}
           />
 
-          <QuickStatsCard
-            addressHistoryYears={addressHistoryYears}
+          <EmploymentHistoryCard
+            employmentHistory={dbApplication.employment_history}
             employmentGaps={dbApplication.employment_gaps}
-            hasGaps={!!dbApplication.employment_gaps}
+            currentEmployment={dbApplication.current_employment}
           />
 
           {/* Row 3 */}
@@ -301,17 +355,42 @@ const ApplicationDetailNew = () => {
             dbsEnhanced={dbApplication.dbs_enhanced}
             dbsUpdate={dbApplication.dbs_update}
             offenceHistory={dbApplication.criminal_convictions}
+            previousRegistration={dbApplication.previous_registration}
+            registrationDetails={registrationDetails}
+            healthConditions={dbApplication.health_conditions}
+            healthDetails={dbApplication.health_details}
+            smoker={dbApplication.smoker}
+            disqualified={dbApplication.disqualified}
+            safeguardingConcerns={dbApplication.safeguarding_concerns}
+            safeguardingDetails={dbApplication.safeguarding_details}
+            otherCircumstances={dbApplication.other_circumstances}
+            otherCircumstancesDetails={dbApplication.other_circumstances_details}
+            convictionsDetails={dbApplication.convictions_details}
           />
 
           <ReferencesCard
             reference1Name={references.reference1?.name}
             reference1Relationship={references.reference1?.relationship}
             reference1Contact={references.reference1?.contact}
+            reference1Childcare={references.reference1?.childcare}
             reference2Name={references.reference2?.name}
             reference2Relationship={references.reference2?.relationship}
             reference2Contact={references.reference2?.contact}
+            reference2Childcare={references.reference2?.childcare}
+            childVolunteered={dbApplication.child_volunteered}
+            childVolunteeredConsent={dbApplication.child_volunteered_consent}
           />
 
+          <DeclarationCard
+            declarationConfirmed={dbApplication.declaration_confirmed}
+            declarationChangeNotification={dbApplication.declaration_change_notification}
+            declarationInspectionCooperation={dbApplication.declaration_inspection_cooperation}
+            declarationInformationSharing={dbApplication.declaration_information_sharing}
+            declarationDataProcessing={dbApplication.declaration_data_processing}
+            declarationSignature={dbApplication.declaration_signature}
+            declarationDate={dbApplication.declaration_date}
+            paymentMethod={dbApplication.payment_method}
+          />
         </div>
 
         {/* Compliance Management - Traffic Light Style */}

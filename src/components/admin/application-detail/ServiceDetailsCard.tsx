@@ -14,6 +14,10 @@ interface ServiceDetailsCardProps {
   localAuthority: string;
   workWithOthers: string;
   numberOfAssistants?: number;
+  serviceHours?: string[];
+  overnightCare?: string;
+  ofstedRegistered?: string;
+  ofstedNumber?: string;
 }
 
 export const ServiceDetailsCard = ({
@@ -23,6 +27,10 @@ export const ServiceDetailsCard = ({
   localAuthority,
   workWithOthers,
   numberOfAssistants,
+  serviceHours,
+  overnightCare,
+  ofstedRegistered,
+  ofstedNumber,
 }: ServiceDetailsCardProps) => {
   return (
     <AppleCard className="p-6 col-span-2">
@@ -94,6 +102,41 @@ export const ServiceDetailsCard = ({
           )}
         </div>
       </div>
+
+      {(serviceHours && serviceHours.length > 0) || overnightCare || ofstedRegistered || ofstedNumber ? (
+        <div className="mt-4 pt-4 border-t border-border">
+          {(ofstedRegistered || ofstedNumber) && (
+            <div className="mb-4">
+              <div className="text-xs font-medium text-muted-foreground mb-2">Ofsted Registration</div>
+              <div className="flex items-center gap-2">
+                {ofstedRegistered === "Yes" && (
+                  <Badge variant="outline" className="text-xs">Previously Registered</Badge>
+                )}
+                {ofstedNumber && (
+                  <div className="text-sm font-mono">{ofstedNumber}</div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {serviceHours && serviceHours.length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs font-medium text-muted-foreground mb-2">Service Hours</div>
+              <div className="flex flex-wrap gap-2">
+                {serviceHours.map((time, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-xs">
+                    {time}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {overnightCare === "Yes" && (
+            <Badge variant="outline" className="text-xs">Overnight Care</Badge>
+          )}
+        </div>
+      ) : null}
     </AppleCard>
   );
 };
