@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";

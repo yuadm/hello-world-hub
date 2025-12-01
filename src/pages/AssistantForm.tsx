@@ -81,11 +81,7 @@ export default function AssistantForm() {
 
       if (!assistant) {
         console.error("[AssistantForm] Invalid or expired form token");
-        toast({
-          title: "Invalid Form Link",
-          description: "This form link is invalid or has expired.",
-          variant: "destructive",
-        });
+        toast.error("This form link is invalid or has expired.");
         setLoading(false);
         return;
       }
