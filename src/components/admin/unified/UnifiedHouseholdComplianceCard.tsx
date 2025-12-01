@@ -2,7 +2,18 @@ import { useState, useEffect } from "react";
 import { AppleCard } from "@/components/admin/AppleCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Download, FileCheck } from "lucide-react";
+import { Mail, Download, FileCheck, Plus, Trash2 } from "lucide-react";
+import { AddEditHouseholdMemberModal } from "@/components/admin/AddEditHouseholdMemberModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DualTrafficLightIndicator } from "@/components/admin/application-detail/DualTrafficLightIndicator";
@@ -89,6 +100,8 @@ export const UnifiedHouseholdComplianceCard = ({
   const [showSendFormModal, setShowSendFormModal] = useState(false);
   const [showDBSModal, setShowDBSModal] = useState(false);
   const [showCertModal, setShowCertModal] = useState(false);
+  const [showAddEditModal, setShowAddEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<HouseholdMember | null>(null);
 
   useEffect(() => {
@@ -232,6 +245,34 @@ export const UnifiedHouseholdComplianceCard = ({
 
   const counts = getStatusCounts();
 
+  const handleDeleteMember = async () => {
+    if (!selectedMember) return;
+
+    try {
+      const { error } = await supabase
+        .from("compliance_household_members")
+        .delete()
+        .eq("id", selectedMember.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Member Deleted",
+        description: `${selectedMember.full_name} has been removed.`,
+      });
+
+      loadMembers();
+      setShowDeleteDialog(false);
+      setSelectedMember(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete member",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <AppleCard className="p-6">
@@ -247,11 +288,27 @@ export const UnifiedHouseholdComplianceCard = ({
     <>
       <AppleCard className="p-6">
         <div className="flex items-start justify-between gap-6 mb-6">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight mb-1">🏠 Household Members</h2>
-            <p className="text-sm text-muted-foreground">
-              {members.length} member{members.length !== 1 ? "s" : ""}
-            </p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight mb-1">🏠 Household Members</h2>
+              <p className="text-sm text-muted-foreground">
+                {members.length} member{members.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            {parentType === 'employee' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setSelectedMember(null);
+                  setShowAddEditModal(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Add Member
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -349,6 +406,34 @@ export const UnifiedHouseholdComplianceCard = ({
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
+                    {parentType === 'employee' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => {
+                            setSelectedMember(member);
+                            setShowAddEditModal(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setSelectedMember(member);
+                            setShowDeleteDialog(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                    
                     <Button
                       variant="outline"
                       size="sm"
@@ -410,6 +495,35 @@ export const UnifiedHouseholdComplianceCard = ({
           )}
         </div>
       </AppleCard>
+
+      <AddEditHouseholdMemberModal
+        open={showAddEditModal}
+        onOpenChange={setShowAddEditModal}
+        member={selectedMember}
+        parentId={parentId}
+        parentType={parentType}
+        onSave={() => {
+          loadMembers();
+          setSelectedMember(null);
+        }}
+      />
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Household Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedMember?.full_name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteMember} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {selectedMember && (
         <>

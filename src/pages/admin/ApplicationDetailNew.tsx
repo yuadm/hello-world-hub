@@ -10,6 +10,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { ApplicationHero } from "@/components/admin/application-detail/ApplicationHero";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
+import { AppleCard } from "@/components/admin/AppleCard";
 import { PersonalInfoCard } from "@/components/admin/application-detail/PersonalInfoCard";
 import { ServiceDetailsCard } from "@/components/admin/application-detail/ServiceDetailsCard";
 import { AddressCard } from "@/components/admin/application-detail/AddressCard";
@@ -394,20 +395,37 @@ const ApplicationDetailNew = () => {
         </div>
 
         {/* Compliance Management - Traffic Light Style */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <UnifiedHouseholdComplianceCard
-            parentId={id!}
-            parentType="application"
-            parentEmail={dbApplication.email}
-            parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
-          />
-          <UnifiedAssistantComplianceCard
-            parentId={id!}
-            parentType="application"
-            parentEmail={dbApplication.email}
-            parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
-          />
-        </div>
+        {dbApplication.status === 'approved' && existingEmployeeId ? (
+          <AppleCard className="p-8 text-center">
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                <FileCheck className="h-6 w-6" />
+                <h3 className="text-lg font-semibold">Application Approved</h3>
+              </div>
+              <p className="text-muted-foreground">
+                This application has been approved and all compliance data has been transferred to the employee record.
+              </p>
+              <Button onClick={() => navigate(`/admin/employees/${existingEmployeeId}`)}>
+                View Employee Record →
+              </Button>
+            </div>
+          </AppleCard>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <UnifiedHouseholdComplianceCard
+              parentId={id!}
+              parentType="application"
+              parentEmail={dbApplication.email}
+              parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+            />
+            <UnifiedAssistantComplianceCard
+              parentId={id!}
+              parentType="application"
+              parentEmail={dbApplication.email}
+              parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+            />
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

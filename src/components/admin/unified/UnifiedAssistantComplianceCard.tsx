@@ -2,7 +2,18 @@ import { useState, useEffect } from "react";
 import { AppleCard } from "@/components/admin/AppleCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Download, FileCheck } from "lucide-react";
+import { Mail, Download, FileCheck, Plus, Trash2 } from "lucide-react";
+import { AddEditEmployeeAssistantModal } from "@/components/admin/AddEditEmployeeAssistantModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TrafficLightIndicator } from "@/components/admin/application-detail/TrafficLightIndicator";
@@ -95,6 +106,8 @@ export const UnifiedAssistantComplianceCard = ({
   const [showSendFormModal, setShowSendFormModal] = useState(false);
   const [showDBSModal, setShowDBSModal] = useState(false);
   const [showCertModal, setShowCertModal] = useState(false);
+  const [showAddEditModal, setShowAddEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useState<Assistant | null>(null);
 
   useEffect(() => {
@@ -233,6 +246,34 @@ export const UnifiedAssistantComplianceCard = ({
 
   const counts = getStatusCounts();
 
+  const handleDeleteAssistant = async () => {
+    if (!selectedAssistant) return;
+
+    try {
+      const { error } = await supabase
+        .from("compliance_assistants")
+        .delete()
+        .eq("id", selectedAssistant.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Assistant Deleted",
+        description: `${selectedAssistant.first_name} ${selectedAssistant.last_name} has been removed.`,
+      });
+
+      loadAssistants();
+      setShowDeleteDialog(false);
+      setSelectedAssistant(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete assistant",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <AppleCard className="p-6">
@@ -248,11 +289,27 @@ export const UnifiedAssistantComplianceCard = ({
     <>
       <AppleCard className="p-6">
         <div className="flex items-start justify-between gap-6 mb-6">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight mb-1">👥 Assistants</h2>
-            <p className="text-sm text-muted-foreground">
-              {assistants.length} assistant{assistants.length !== 1 ? "s" : ""}
-            </p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight mb-1">👥 Assistants</h2>
+              <p className="text-sm text-muted-foreground">
+                {assistants.length} assistant{assistants.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            {parentType === 'employee' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setSelectedAssistant(null);
+                  setShowAddEditModal(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Add Assistant
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -337,6 +394,34 @@ export const UnifiedAssistantComplianceCard = ({
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
+                    {parentType === 'employee' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => {
+                            setSelectedAssistant(assistant);
+                            setShowAddEditModal(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setSelectedAssistant(assistant);
+                            setShowDeleteDialog(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                    
                     <Button
                       variant="outline"
                       size="sm"
@@ -394,6 +479,35 @@ export const UnifiedAssistantComplianceCard = ({
           )}
         </div>
       </AppleCard>
+
+      <AddEditEmployeeAssistantModal
+        open={showAddEditModal}
+        onOpenChange={setShowAddEditModal}
+        assistant={selectedAssistant}
+        parentId={parentId}
+        parentType={parentType}
+        onSave={() => {
+          loadAssistants();
+          setSelectedAssistant(null);
+        }}
+      />
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Assistant</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedAssistant?.first_name} {selectedAssistant?.last_name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAssistant} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {showSendFormModal && selectedAssistant && (
         <UnifiedSendAssistantFormModal

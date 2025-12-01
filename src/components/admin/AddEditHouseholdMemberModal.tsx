@@ -47,7 +47,8 @@ type MemberFormData = z.infer<typeof memberSchema>;
 
 interface DBSMember {
   id: string;
-  employee_id: string;
+  employee_id?: string;
+  application_id?: string;
   member_type: string;
   full_name: string;
   date_of_birth: string;
@@ -60,7 +61,8 @@ interface AddEditHouseholdMemberModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   member: DBSMember | null;
-  employeeId: string;
+  parentId: string;
+  parentType: 'application' | 'employee';
   onSave: () => void;
 }
 
@@ -68,7 +70,8 @@ export const AddEditHouseholdMemberModal = ({
   open,
   onOpenChange,
   member,
-  employeeId,
+  parentId,
+  parentType,
   onSave,
 }: AddEditHouseholdMemberModalProps) => {
   const [saving, setSaving] = useState(false);
@@ -158,7 +161,7 @@ export const AddEditHouseholdMemberModal = ({
       if (member) {
         // Update existing member
         const { error } = await supabase
-          .from('employee_household_members')
+          .from('compliance_household_members')
           .update(memberData)
           .eq('id', member.id);
 
@@ -169,12 +172,12 @@ export const AddEditHouseholdMemberModal = ({
           description: `${data.full_name} has been updated successfully.`,
         });
       } else {
-        // Add new member
+        // Add new member with polymorphic reference
         const { error } = await supabase
-          .from('employee_household_members')
+          .from('compliance_household_members')
           .insert({
             ...memberData,
-            employee_id: employeeId,
+            [parentType === 'application' ? 'application_id' : 'employee_id']: parentId,
           });
 
         if (error) throw error;
