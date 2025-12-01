@@ -275,18 +275,17 @@ const AdminApplications = () => {
                           <div className="flex items-center justify-end gap-1">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`/admin/applications/${app.id}`);
                               }}
                             >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
+                              <Eye className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={(e) => {
                                 e.stopPropagation();
