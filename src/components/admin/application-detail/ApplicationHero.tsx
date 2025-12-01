@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, ExternalLink, UserCheck } from "lucide-react";
+import { Download, UserCheck, Edit } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ interface ApplicationHeroProps {
   onStatusChange: (status: string) => void;
   onDownloadPDF: () => void;
   onViewEmployee: () => void;
+  onEdit: () => void;
 }
 
 export const ApplicationHero = ({
@@ -29,6 +30,7 @@ export const ApplicationHero = ({
   onStatusChange,
   onDownloadPDF,
   onViewEmployee,
+  onEdit,
 }: ApplicationHeroProps) => {
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -63,6 +65,17 @@ export const ApplicationHero = ({
             title="Download PDF"
           >
             <Download className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={onEdit}
+            className="rounded-xl gap-2"
+            disabled={status === "approved"}
+            title={status === "approved" ? "Cannot edit approved applications" : "Edit application"}
+          >
+            <Edit className="h-4 w-4" />
+            Edit
           </Button>
 
           {existingEmployeeId && (

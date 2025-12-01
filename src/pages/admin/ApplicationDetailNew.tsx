@@ -8,6 +8,8 @@ import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { ApplicationHero } from "@/components/admin/application-detail/ApplicationHero";
+import { AdminApplicationEditForm } from "@/components/admin/AdminApplicationEditForm";
+import { dbToFormData } from "@/lib/applicationDataMapper";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
 import { RequestApplicantDBSModal } from "@/components/admin/RequestApplicantDBSModal";
@@ -106,6 +108,7 @@ const ApplicationDetailNew = () => {
   const [dbApplication, setDbApplication] = useState<DBApplication | null>(null);
   const [existingEmployeeId, setExistingEmployeeId] = useState<string | null>(null);
   const [showDBSRequestModal, setShowDBSRequestModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchApplication();
@@ -284,7 +287,22 @@ const ApplicationDetailNew = () => {
           onStatusChange={updateStatus}
           onDownloadPDF={downloadPDF}
           onViewEmployee={() => navigate(`/admin/employees/${existingEmployeeId}`)}
+          onEdit={() => setIsEditing(true)}
         />
+
+        {/* Edit Mode or View Mode */}
+        {isEditing ? (
+          <AdminApplicationEditForm
+            applicationId={id!}
+            initialData={dbToFormData(dbApplication as any)}
+            onCancel={() => setIsEditing(false)}
+            onSaveSuccess={() => {
+              setIsEditing(false);
+              fetchApplication();
+            }}
+          />
+        ) : (
+          <>
 
         {/* Main Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -433,6 +451,8 @@ const ApplicationDetailNew = () => {
               parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
             />
           </div>
+        )}
+        </>
         )}
 
         <RequestApplicantDBSModal
