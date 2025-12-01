@@ -122,10 +122,7 @@ export const UnifiedRecordCertificateModal = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="not_requested">Not Requested</SelectItem>
-                <SelectItem value="requested">Requested</SelectItem>
-                <SelectItem value="applied">Applied</SelectItem>
                 <SelectItem value="received">Certificate Received</SelectItem>
-                <SelectItem value="exempt">Exempt</SelectItem>
               </SelectContent>
             </Select>
           </div>
