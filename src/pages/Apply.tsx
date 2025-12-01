@@ -143,7 +143,7 @@ const Apply = () => {
 
     try {
       // Submit to database with proper column mapping
-      const { error } = await supabase
+      const { data: applicationData, error } = await supabase
         .from('childminder_applications')
         .insert({
           // Personal Details
@@ -267,11 +267,99 @@ const Apply = () => {
           // No user_id - allowing anonymous submissions
           user_id: null,
           status: 'pending'
-        } as any);
+        } as any)
+        .select()
+        .single();
 
       if (error) {
         console.error("Database error:", error);
         throw error;
+      }
+
+      // Create compliance records for household members and assistants
+      if (applicationData?.id) {
+        const applicationId = applicationData.id;
+        
+        // Helper function to calculate age
+        const calculateAge = (dob: string): number => {
+          const birthDate = new Date(dob);
+          const today = new Date();
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          return age;
+        };
+
+        // Create household member records
+        const householdMemberRecords = [];
+        
+        // Process adults
+        if (data.adults && Array.isArray(data.adults)) {
+          for (const adult of data.adults) {
+            householdMemberRecords.push({
+              application_id: applicationId,
+              full_name: adult.fullName,
+              date_of_birth: adult.dob,
+              relationship: adult.relationship,
+              member_type: 'adult',
+              dbs_status: 'not_requested' as const,
+              form_status: 'not_sent' as const
+            });
+          }
+        }
+
+        // Process children (check if any are 16+ and mark as adult)
+        if (data.children && Array.isArray(data.children)) {
+          for (const child of data.children) {
+            const age = child.dob ? calculateAge(child.dob) : 0;
+            householdMemberRecords.push({
+              application_id: applicationId,
+              full_name: child.fullName,
+              date_of_birth: child.dob,
+              relationship: 'Child',
+              member_type: age >= 16 ? 'adult' : 'child',
+              dbs_status: age >= 16 ? ('not_requested' as const) : null,
+              form_status: age >= 16 ? ('not_sent' as const) : null
+            });
+          }
+        }
+
+        if (householdMemberRecords.length > 0) {
+          const { error: memberError } = await supabase
+            .from('compliance_household_members')
+            .insert(householdMemberRecords);
+          
+          if (memberError) {
+            console.error("Failed to create household member records:", memberError);
+          }
+        }
+
+        // Create assistant records
+        if (data.assistants && Array.isArray(data.assistants)) {
+          const assistantRecords = data.assistants.map((assistant: any) => ({
+            application_id: applicationId,
+            first_name: assistant.firstName,
+            last_name: assistant.lastName,
+            date_of_birth: assistant.dob,
+            role: assistant.role,
+            email: assistant.email,
+            phone: assistant.phone,
+            dbs_status: 'not_requested' as const,
+            form_status: 'not_sent' as const
+          }));
+
+          if (assistantRecords.length > 0) {
+            const { error: assistantError } = await supabase
+              .from('compliance_assistants')
+              .insert(assistantRecords);
+            
+            if (assistantError) {
+              console.error("Failed to create assistant records:", assistantError);
+            }
+          }
+        }
       }
 
       toast.success("Application submitted successfully! We'll review and be in touch soon.");
