@@ -15,6 +15,7 @@ interface Assistant {
   dbs_status: string;
   dbs_certificate_number: string | null;
   dbs_certificate_date: string | null;
+  dbs_certificate_expiry_date: string | null;
 }
 
 interface UnifiedRecordAssistantCertificateModalProps {
@@ -36,6 +37,7 @@ export const UnifiedRecordAssistantCertificateModal = ({
     dbs_status: "received" as string,
     dbs_certificate_number: "",
     dbs_certificate_date: "",
+    dbs_certificate_expiry_date: "",
   });
 
   // Reset form when modal opens with new assistant
@@ -45,9 +47,20 @@ export const UnifiedRecordAssistantCertificateModal = ({
         dbs_status: assistant.dbs_status === 'not_requested' ? 'received' : assistant.dbs_status,
         dbs_certificate_number: assistant.dbs_certificate_number || "",
         dbs_certificate_date: assistant.dbs_certificate_date || "",
+        dbs_certificate_expiry_date: assistant.dbs_certificate_expiry_date || "",
       });
     }
   }, [open, assistant]);
+
+  // Auto-calculate expiry date (3 years from issue date)
+  const handleCertificateDateChange = (date: string) => {
+    setFormData({ ...formData, dbs_certificate_date: date });
+    if (date && formData.dbs_status === 'received') {
+      const issueDate = new Date(date);
+      issueDate.setFullYear(issueDate.getFullYear() + 3);
+      setFormData(prev => ({ ...prev, dbs_certificate_date: date, dbs_certificate_expiry_date: issueDate.toISOString().split('T')[0] }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +97,10 @@ export const UnifiedRecordAssistantCertificateModal = ({
 
       if (formData.dbs_certificate_date) {
         updateData.dbs_certificate_date = formData.dbs_certificate_date;
+      }
+
+      if (formData.dbs_certificate_expiry_date) {
+        updateData.dbs_certificate_expiry_date = formData.dbs_certificate_expiry_date;
       }
 
       const { error } = await supabase
@@ -164,9 +181,25 @@ export const UnifiedRecordAssistantCertificateModal = ({
               id="dbs_certificate_date"
               type="date"
               value={formData.dbs_certificate_date}
-              onChange={(e) => setFormData({ ...formData, dbs_certificate_date: e.target.value })}
+              onChange={(e) => handleCertificateDateChange(e.target.value)}
               className="rounded-xl"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dbs_certificate_expiry_date">
+              DBS Certificate Expiry Date {formData.dbs_status === 'received' && <span className="text-destructive">*</span>}
+            </Label>
+            <Input
+              id="dbs_certificate_expiry_date"
+              type="date"
+              value={formData.dbs_certificate_expiry_date}
+              onChange={(e) => setFormData({ ...formData, dbs_certificate_expiry_date: e.target.value })}
+              className="rounded-xl"
+            />
+            <p className="text-xs text-muted-foreground">
+              Auto-calculated as 3 years from issue date
+            </p>
           </div>
 
           <div className="flex gap-3 justify-end pt-4">

@@ -558,6 +558,7 @@ export const UnifiedAssistantComplianceCard = ({
             dbs_status: selectedAssistant.dbs_status,
             dbs_certificate_number: selectedAssistant.dbs_certificate_number,
             dbs_certificate_date: selectedAssistant.dbs_certificate_date,
+            dbs_certificate_expiry_date: selectedAssistant.dbs_certificate_expiry_date,
           }}
           onSuccess={loadAssistants}
         />
