@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.submit-assistant-form]
 verify_jwt = false
+
+[functions.send-reference-request-email]
+verify_jwt = false
+
+[functions.submit-reference-form]
+verify_jwt = false

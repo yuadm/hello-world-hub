@@ -15,7 +15,6 @@ interface ReferenceRequestPayload {
   refereeEmail: string;
   isChildcareReference: boolean;
   applicantName: string;
-  siteUrl: string;
 }
 
 serve(async (req) => {
@@ -40,8 +39,7 @@ serve(async (req) => {
       refereeRelationship,
       refereeEmail,
       isChildcareReference,
-      applicantName,
-      siteUrl
+      applicantName
     } = payload;
 
     // Generate unique token
@@ -74,7 +72,7 @@ serve(async (req) => {
     console.log('Reference request created:', referenceRequest.id);
 
     // Generate form URL
-    const formUrl = `${siteUrl}/reference-form?token=${formToken}`;
+    const formUrl = `https://childminderpro.vercel.app/reference-form?token=${formToken}`;
     
     // Send email using Brevo
     const brevoApiKey = Deno.env.get('BREVO_API_KEY');
