@@ -64,8 +64,7 @@ const styles = StyleSheet.create({
   // Section styles with left accent
   section: {
     marginBottom: 20,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.borderAccent,
+    borderLeft: "3 solid #3B82F6",
     paddingLeft: 12,
   },
   sectionTitle: {
@@ -143,8 +142,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 8,
     color: colors.textSubtle,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTop: "1 solid #DDDDDD",
     paddingTop: 8,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -159,8 +157,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 10,
     height: 10,
-    borderWidth: 1,
-    borderColor: colors.textMuted,
+    border: "1 solid #666666",
     marginRight: 6,
     marginTop: 2,
   },
