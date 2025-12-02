@@ -107,14 +107,26 @@ export async function fillOfstedForm(data: OfstedFormData): Promise<Blob> {
     });
   };
   
-  // Helper to draw a checkmark
+  // Helper to draw a checkmark using lines (avoids WinAnsi encoding issues)
   const drawCheckmark = (x: number, y: number) => {
-    sectionAPage.drawText('✓', {
-      x: x + 2,
-      y: y - 2,
-      size: 12,
-      font: fontBold,
-      color: textColor,
+    const checkColor = rgb(0, 0, 0);
+    const lineWidth = 1.5;
+    
+    // Draw a checkmark shape using two lines
+    // First line: short downward stroke (left part of check)
+    sectionAPage.drawLine({
+      start: { x: x + 2, y: y + 4 },
+      end: { x: x + 5, y: y + 1 },
+      thickness: lineWidth,
+      color: checkColor,
+    });
+    
+    // Second line: longer upward stroke (right part of check)
+    sectionAPage.drawLine({
+      start: { x: x + 5, y: y + 1 },
+      end: { x: x + 11, y: y + 8 },
+      thickness: lineWidth,
+      color: checkColor,
     });
   };
   
