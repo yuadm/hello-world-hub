@@ -8,8 +8,9 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    borderBottom: 2,
-    borderColor: '#000',
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
     paddingBottom: 10,
   },
   title: {
@@ -44,8 +45,9 @@ const styles = StyleSheet.create({
     width: '60%',
   },
   addressBox: {
-    border: 1,
+    borderWidth: 1,
     borderColor: '#000',
+    borderStyle: 'solid',
     padding: 10,
     marginBottom: 10,
   },
@@ -57,16 +59,18 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 12,
     height: 12,
-    border: 1,
+    borderWidth: 1,
     borderColor: '#000',
+    borderStyle: 'solid',
     marginRight: 8,
   },
   checkboxChecked: {
     backgroundColor: '#000',
   },
   emptySection: {
-    border: 1,
+    borderWidth: 1,
     borderColor: '#ccc',
+    borderStyle: 'solid',
     padding: 20,
     marginTop: 10,
     backgroundColor: '#fafafa',
@@ -80,8 +84,9 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontSize: 8,
     color: '#666',
-    borderTop: 1,
-    borderColor: '#ccc',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    borderTopStyle: 'solid',
     paddingTop: 10,
   },
 });
