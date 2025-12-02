@@ -10,10 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { pdf } from "@react-pdf/renderer";
-import { KnownToOfstedPDF } from "./KnownToOfstedPDF";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { fillOfstedForm } from "@/lib/ofstedPdfFiller";
 
 interface GenerateOfstedFormModalProps {
   open: boolean;
@@ -82,32 +81,27 @@ export const GenerateOfstedFormModal = ({
 
     setGenerating(true);
     try {
-      const requestDate = format(new Date(), "dd/MM/yyyy");
-      
       const safeCurrentAddress = {
         line1: currentAddress?.line1 || 'Not provided',
         line2: currentAddress?.line2 || undefined,
         town: currentAddress?.town || 'Not provided',
         postcode: currentAddress?.postcode || 'Not provided',
-        moveInDate: currentAddress?.moveInDate || 'N/A',
+        moveInDate: currentAddress?.moveInDate || '',
       };
 
-      const blob = await pdf(
-        <KnownToOfstedPDF
-          applicantName={applicantName || 'Unknown'}
-          previousNames={previousNames}
-          dateOfBirth={formatDateSafe(dateOfBirth)}
-          currentAddress={safeCurrentAddress}
-          previousAddresses={previousAddresses}
-          role={role}
-          requestDate={requestDate}
-          requesterName={requesterName}
-          requesterRole={requesterRole}
-          requireChildInfo={requireChildInfo}
-          agencyName={agencyName}
-          ofstedEmail={ofstedEmail}
-        />
-      ).toBlob();
+      // Use pdf-lib to fill the official Ofsted form template
+      const blob = await fillOfstedForm({
+        applicantName: applicantName || 'Unknown',
+        previousNames,
+        dateOfBirth: dateOfBirth || '',
+        currentAddress: safeCurrentAddress,
+        previousAddresses,
+        role,
+        requesterName,
+        requesterRole,
+        requireChildInfo,
+        agencyName,
+      });
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
