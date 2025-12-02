@@ -173,12 +173,12 @@ export const KnownToOfstedPDF = ({
 
           <View style={styles.row}>
             <Text style={styles.label}>Current address:</Text>
-            <View style={styles.addressBox}>
-              <Text>{currentAddress.line1}</Text>
-              {currentAddress.line2 && <Text>{currentAddress.line2}</Text>}
-              <Text>{currentAddress.town}</Text>
-              <Text>{currentAddress.postcode}</Text>
-              <Text style={{ marginTop: 5, fontSize: 9 }}>Date from: {currentAddress.moveInDate}</Text>
+          <View style={styles.addressBox}>
+              <Text>{currentAddress.line1 || ''}</Text>
+              {currentAddress.line2 ? <Text>{currentAddress.line2}</Text> : null}
+              <Text>{currentAddress.town || ''}</Text>
+              <Text>{currentAddress.postcode || ''}</Text>
+              <Text style={{ marginTop: 5, fontSize: 9 }}>Date from: {currentAddress.moveInDate || 'N/A'}</Text>
             </View>
           </View>
 
