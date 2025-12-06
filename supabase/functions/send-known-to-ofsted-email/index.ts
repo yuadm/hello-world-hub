@@ -73,7 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
     const referenceId = `RK-${year}-${seq}`;
 
     // Build the form URL with query parameters
-    const baseUrl = "https://readykids.lovable.app";
+    const baseUrl = "https://childminderpro.vercel.app";
     const formUrl = new URL(`${baseUrl}/ofsted-form`);
     
     // Encode form data as URL parameters
