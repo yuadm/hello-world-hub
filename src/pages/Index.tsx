@@ -1,16 +1,10 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Hero from "@/components/home/Hero";
-import LogoBar from "@/components/home/LogoBar";
-import Features from "@/components/home/Features";
-import HowItWorks from "@/components/home/HowItWorks";
-import Benefits from "@/components/home/Benefits";
-import StatsSection from "@/components/home/StatsSection";
-import DashboardPreview from "@/components/home/DashboardPreview";
-import Pricing from "@/components/home/Pricing";
+import ValuesSection from "@/components/home/ValuesSection";
+import WhatWeOffer from "@/components/home/WhatWeOffer";
+import ValueProposition from "@/components/home/ValueProposition";
 import Testimonials from "@/components/home/Testimonials";
-import FAQ from "@/components/home/FAQ";
-import CTA from "@/components/home/CTA";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -27,6 +21,7 @@ const Index = () => {
       }
     }
   }, [location]);
+
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -34,27 +29,11 @@ const Index = () => {
         <section id="home">
           <Hero />
         </section>
-        <LogoBar />
-        <section id="features">
-          <Features />
-        </section>
-        <HowItWorks />
-        <section id="benefits">
-          <Benefits />
-        </section>
-        <StatsSection />
-        <DashboardPreview />
-        <section id="pricing">
-          <Pricing />
-        </section>
-        <section id="testimonials">
-          <Testimonials />
-        </section>
-        <section id="faq">
-          <FAQ />
-        </section>
+        <ValuesSection />
+        <WhatWeOffer />
+        <ValueProposition />
         <section id="contact">
-          <CTA />
+          <Testimonials />
         </section>
       </main>
       <Footer />

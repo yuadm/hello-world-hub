@@ -1,5 +1,5 @@
 import { NavLink } from "@/components/NavLink";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -8,58 +8,73 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl font-bold text-primary mb-4">
-              ChildMinder<span className="text-secondary">Pro</span>
+            <h3 className="text-xl font-bold font-poppins text-primary mb-4">
+              Ready<span className="text-secondary">Kids</span>
             </h3>
             <p className="text-muted-foreground text-sm">
-              All-in-one childminder agency management platform. Simplifying compliance, recruitment, and growth.
+              Empowering families and childminders across England with safe, flexible and educational childcare solutions.
             </p>
+            {/* Social Links */}
+            <div className="flex gap-4 mt-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
+                <i className="fa-brands fa-facebook-f text-lg"></i>
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+                <i className="fa-brands fa-instagram text-lg"></i>
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="LinkedIn">
+                <i className="fa-brands fa-linkedin-in text-lg"></i>
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Twitter">
+                <i className="fa-brands fa-twitter text-lg"></i>
+              </a>
+            </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Quick Links</h4>
+            <h4 className="font-semibold font-poppins mb-4 text-foreground">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <NavLink to="/features" className="text-muted-foreground hover:text-primary transition-colors">
-                  Features
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/pricing" className="text-muted-foreground hover:text-primary transition-colors">
-                  Pricing
-                </NavLink>
-              </li>
-              <li>
                 <NavLink to="/about" className="text-muted-foreground hover:text-primary transition-colors">
-                  About Us
+                  About
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
-                  Contact
+                <NavLink to="/parents" className="text-muted-foreground hover:text-primary transition-colors">
+                  Parents
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/childminders" className="text-muted-foreground hover:text-primary transition-colors">
+                  Childminders
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/services" className="text-muted-foreground hover:text-primary transition-colors">
+                  Services
                 </NavLink>
               </li>
             </ul>
           </div>
 
-          {/* For Agencies */}
+          {/* For Families */}
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">For Agencies</h4>
+            <h4 className="font-semibold font-poppins mb-4 text-foreground">For Families</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <NavLink to="/join" className="text-muted-foreground hover:text-primary transition-colors">
-                  Join Our Network
+                <NavLink to="/apply" className="text-muted-foreground hover:text-primary transition-colors">
+                  Find Childcare
                 </NavLink>
               </li>
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                  Case Studies
+                  Funding & Guidance
                 </a>
               </li>
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                  Resources
+                  Parent Resources
                 </a>
               </li>
             </ul>
@@ -67,26 +82,30 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Contact Us</h4>
+            <h4 className="font-semibold font-poppins mb-4 text-foreground">Contact Us</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2 text-muted-foreground">
-                <Mail size={16} className="text-primary" />
-                info@childminderpro.com
+                <Mail size={16} className="text-primary flex-shrink-0" />
+                admin@readykids.com
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
-                <Phone size={16} className="text-primary" />
-                0800 123 4567
+                <Phone size={16} className="text-primary flex-shrink-0" />
+                (123) 456‑7890
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
-                <MapPin size={16} className="text-primary" />
-                London, United Kingdom
+                <Clock size={16} className="text-primary flex-shrink-0" />
+                9 am – 6 pm (Mon–Fri)
+              </li>
+              <li className="flex items-start gap-2 text-muted-foreground">
+                <MapPin size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                108 Regent Studio, 1 Thane Villas, London, N7 7PH
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} ChildMinderPro. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} ReadyKids. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
             <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>

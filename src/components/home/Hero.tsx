@@ -1,11 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
-import { ArrowRight, CheckCircle2, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import heroImage from "@/assets/hero-childcare.jpg";
+import { useState, useEffect } from "react";
+
+const cyclingWords = ["Flexible", "Safe", "Compliant", "Trusted", "Bespoke"];
 
 const Hero = () => {
-  const scrollToFeatures = () => {
-    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % cyclingWords.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const scrollToValues = () => {
+    document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -25,52 +37,42 @@ const Hero = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="inline-block px-4 py-2 bg-primary/10 rounded-full">
-                <span className="text-primary font-semibold text-sm">All-in-One Agency Management</span>
+                <span className="text-primary font-semibold text-sm font-poppins">Forward-Thinking Childcare</span>
               </div>
               
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                Transform Your{" "}
-                <span className="text-primary">Childminder Agency</span>
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight font-poppins">
+                Forward‑Thinking Care That Puts{" "}
+                <span className="text-primary">Kids First</span>
               </h1>
               
-              <p className="text-xl text-muted-foreground leading-relaxed">
-                Find, manage and onboard childminders seamlessly. Grow your childminding business with confidence and compliance.
-              </p>
-            </div>
+              {/* Cycling tagline */}
+              <div className="h-12 flex items-center">
+                <span className="text-2xl lg:text-3xl font-semibold font-poppins">
+                  <span className="text-secondary transition-all duration-500">
+                    {cyclingWords[currentWordIndex]}
+                  </span>
+                </span>
+              </div>
 
-            {/* Key benefits */}
-            <div className="space-y-3">
-              {[
-                "Streamlined recruitment & vetting",
-                "Built-in Ofsted compliance",
-                "Automated document management",
-                "Scale with ease"
-              ].map((benefit, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <CheckCircle2 className="text-accent h-5 w-5 flex-shrink-0" />
-                  <span className="text-foreground">{benefit}</span>
-                </div>
-              ))}
+              <p className="text-xl text-muted-foreground leading-relaxed">
+                Empowering families and childminders across England with safe, flexible and educational childcare solutions.
+              </p>
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <NavLink to="/join">
+              <NavLink to="/apply">
                 <Button size="lg" className="group w-full sm:w-auto">
-                  Join as Agency
+                  Find Childcare
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </NavLink>
-              <NavLink to="/apply">
+              <NavLink to="/join">
                 <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                  Apply as Childminder
+                  Become a Childminder
                 </Button>
               </NavLink>
             </div>
-
-            <p className="text-sm text-muted-foreground">
-              Join 200+ agencies already transforming their childminding operations
-            </p>
           </div>
 
           {/* Right column - Image */}
@@ -78,23 +80,10 @@ const Hero = () => {
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <img 
                 src={heroImage} 
-                alt="Professional childcare environment" 
+                alt="Children learning and playing in a nurturing environment" 
                 className="w-full h-auto object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
-            </div>
-            
-            {/* Floating stats card */}
-            <div className="absolute -bottom-8 -left-8 bg-card p-6 rounded-xl shadow-lg border border-border hidden lg:block">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
-                  <CheckCircle2 className="text-accent h-6 w-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-foreground">98%</div>
-                  <div className="text-sm text-muted-foreground">Compliance Rate</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -102,11 +91,11 @@ const Hero = () => {
 
       {/* Scroll indicator */}
       <button
-        onClick={scrollToFeatures}
+        onClick={scrollToValues}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
-        aria-label="Scroll to features"
+        aria-label="Scroll to learn more"
       >
-        <span className="text-sm font-medium">Discover More</span>
+        <span className="text-sm font-medium">Learn More</span>
         <ChevronDown className="h-5 w-5 animate-bounce" />
       </button>
     </section>

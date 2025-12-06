@@ -25,39 +25,45 @@ const Navigation = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <NavLink to="/" className="text-2xl font-bold text-primary">
-            ChildMinder<span className="text-secondary">Pro</span>
+          <NavLink to="/" className="text-2xl font-bold font-poppins text-primary">
+            Ready<span className="text-secondary">Kids</span>
           </NavLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection('home')}
-              className="text-foreground hover:text-primary transition-colors"
+              className="text-foreground hover:text-primary transition-colors font-medium"
             >
               Home
             </button>
             <button 
-              onClick={() => scrollToSection('features')}
-              className="text-foreground hover:text-primary transition-colors"
-            >
-              Features
-            </button>
-            <button 
-              onClick={() => scrollToSection('pricing')}
-              className="text-foreground hover:text-primary transition-colors"
-            >
-              Pricing
-            </button>
-            <button 
-              onClick={() => scrollToSection('benefits')}
-              className="text-foreground hover:text-primary transition-colors"
+              onClick={() => scrollToSection('about')}
+              className="text-foreground hover:text-primary transition-colors font-medium"
             >
               About
             </button>
             <button 
+              onClick={() => scrollToSection('parents')}
+              className="text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Parents
+            </button>
+            <button 
+              onClick={() => scrollToSection('childminders')}
+              className="text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Childminders
+            </button>
+            <button 
+              onClick={() => scrollToSection('services')}
+              className="text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Services
+            </button>
+            <button 
               onClick={() => scrollToSection('contact')}
-              className="text-foreground hover:text-primary transition-colors"
+              className="text-foreground hover:text-primary transition-colors font-medium"
             >
               Contact
             </button>
@@ -71,10 +77,7 @@ const Navigation = () => {
               </Button>
             </NavLink>
             <NavLink to="/apply">
-              <Button variant="outline">Apply as Childminder</Button>
-            </NavLink>
-            <NavLink to="/join">
-              <Button variant="default">Join as Agency</Button>
+              <Button variant="default">Find Childcare</Button>
             </NavLink>
           </div>
 
@@ -93,31 +96,37 @@ const Navigation = () => {
           <div className="md:hidden pt-4 pb-6 space-y-4">
             <button 
               onClick={() => scrollToSection('home')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors"
+              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
             >
               Home
             </button>
             <button 
-              onClick={() => scrollToSection('features')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors"
-            >
-              Features
-            </button>
-            <button 
-              onClick={() => scrollToSection('pricing')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors"
-            >
-              Pricing
-            </button>
-            <button 
-              onClick={() => scrollToSection('benefits')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors"
+              onClick={() => scrollToSection('about')}
+              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
             >
               About
             </button>
             <button 
+              onClick={() => scrollToSection('parents')}
+              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Parents
+            </button>
+            <button 
+              onClick={() => scrollToSection('childminders')}
+              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Childminders
+            </button>
+            <button 
+              onClick={() => scrollToSection('services')}
+              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Services
+            </button>
+            <button 
               onClick={() => scrollToSection('contact')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors"
+              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
             >
               Contact
             </button>
@@ -129,10 +138,7 @@ const Navigation = () => {
                 </Button>
               </NavLink>
               <NavLink to="/apply" className="block" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full">Apply as Childminder</Button>
-              </NavLink>
-              <NavLink to="/join" className="block" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="default" className="w-full">Join as Agency</Button>
+                <Button variant="default" className="w-full">Find Childcare</Button>
               </NavLink>
             </div>
           </div>

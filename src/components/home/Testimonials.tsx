@@ -3,46 +3,38 @@ import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Sarah Mitchell",
-    role: "Director, Little Steps Childminding",
-    content: "ChildMinderPro has transformed how we manage our agency. The compliance tracking alone has saved us countless hours and given us peace of mind.",
+    name: "Olivia B.",
+    role: "Parent",
+    content: "ReadyKids helped us find a wonderful childminder who cares for our daughter like family. The personal updates and flexible scheduling make our lives so much easier.",
     rating: 5,
-    initials: "SM",
+    initials: "OB",
     color: "bg-primary/20 text-primary",
   },
   {
-    name: "James Thompson",
-    role: "Owner, Caring Hands Agency",
-    content: "The recruitment portal is a game-changer. We've reduced our hiring time by 60% and found better quality candidates. Absolutely worth it.",
+    name: "Sarah A.",
+    role: "Registered Childminder",
+    content: "As a childminder, I value ReadyKids' support and continuous training. Their standards keep me on my toes and give parents confidence in my care.",
     rating: 5,
-    initials: "JT",
+    initials: "SA",
     color: "bg-secondary/20 text-secondary",
   },
-  {
-    name: "Emma Roberts",
-    role: "Manager, Sunshine Childcare",
-    content: "Finally, a platform built specifically for childminder agencies. The Ofsted compliance features are exactly what we needed.",
-    rating: 5,
-    initials: "ER",
-    color: "bg-accent/20 text-accent",
-  }
 ];
 
 const Testimonials = () => {
   return (
-    <section className="py-24">
+    <section id="childminders" className="py-24">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-4xl font-bold mb-4">
+          <h2 className="text-4xl font-bold font-poppins mb-4">
             Trusted by{" "}
-            <span className="text-primary">Leading Agencies</span>
+            <span className="text-primary">Parents & Professionals</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            See what agency owners say about ChildMinderPro
+            See what families and childminders say about ReadyKids
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {testimonials.map((testimonial, index) => (
             <Card key={index} className="border-border hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
               <CardContent className="pt-6">
@@ -55,17 +47,17 @@ const Testimonials = () => {
                   ))}
                 </div>
                 
-                <p className="text-foreground mb-6 leading-relaxed relative z-10">
+                <p className="text-foreground mb-6 leading-relaxed relative z-10 italic">
                   "{testimonial.content}"
                 </p>
                 
                 <div className="border-t border-border pt-4 flex items-center gap-3">
                   {/* Avatar */}
-                  <div className={`h-10 w-10 rounded-full ${testimonial.color} flex items-center justify-center font-semibold text-sm`}>
+                  <div className={`h-10 w-10 rounded-full ${testimonial.color} flex items-center justify-center font-semibold text-sm font-poppins`}>
                     {testimonial.initials}
                   </div>
                   <div>
-                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="font-semibold font-poppins">— {testimonial.name}</div>
                     <div className="text-sm text-muted-foreground">{testimonial.role}</div>
                   </div>
                 </div>
