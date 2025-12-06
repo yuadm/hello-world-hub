@@ -31,14 +31,14 @@ const About = () => {
       <Navigation />
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[50vh] flex items-center justify-center pt-20">
+        <section className="relative min-h-screen flex items-center justify-center pt-20">
           <div className="absolute inset-0 z-0">
-            <img src={heroImage} alt="About ReadyKids" className="w-full h-full object-cover" />
+            <img src={heroImage} alt="About ReadyKids" className="w-full h-full object-cover object-top" />
             <div className="absolute inset-0 bg-foreground/60" />
           </div>
-          <div className="relative z-10 text-center text-primary-foreground px-4">
-            <h1 className="text-4xl md:text-5xl font-bold font-poppins mb-4">About ReadyKids</h1>
-            <p className="text-xl opacity-90">Empowering families and childminders across England</p>
+          <div className="relative z-10 text-center text-primary-foreground px-4 max-w-3xl">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-poppins mb-6">About ReadyKids</h1>
+            <p className="text-xl lg:text-2xl opacity-90">Empowering families and childminders across England</p>
           </div>
         </section>
 

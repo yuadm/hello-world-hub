@@ -46,16 +46,16 @@ const Parents = () => {
       <Navigation />
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[55vh] flex items-center justify-center pt-20">
+        <section className="relative min-h-screen flex items-center justify-center pt-20">
           <div className="absolute inset-0 z-0">
-            <img src={parentsImage} alt="Parents and childminder" className="w-full h-full object-cover" />
+            <img src={parentsImage} alt="Parents and childminder" className="w-full h-full object-cover object-top" />
             <div className="absolute inset-0 bg-foreground/60" />
           </div>
           <div className="relative z-10 text-center text-primary-foreground px-4 max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold font-poppins mb-4">Find the Perfect Childminder for Your Family</h1>
-            <p className="text-xl opacity-90 mb-8">Discover caring professionals who put your child's learning, health and happiness first.</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-poppins mb-6">Find the Perfect Childminder for Your Family</h1>
+            <p className="text-xl lg:text-2xl opacity-90 mb-10">Discover caring professionals who put your child's learning, health and happiness first.</p>
             <NavLink to="/apply">
-              <Button size="lg">Get Started</Button>
+              <Button size="lg" className="text-lg px-8 py-6">Get Started</Button>
             </NavLink>
           </div>
         </section>

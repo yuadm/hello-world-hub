@@ -14,14 +14,14 @@ const Contact = () => {
       <Navigation />
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[40vh] flex items-center justify-center pt-20">
+        <section className="relative min-h-[60vh] flex items-center justify-center pt-20">
           <div className="absolute inset-0 z-0">
-            <img src={heroImage} alt="Contact Us" className="w-full h-full object-cover" />
+            <img src={heroImage} alt="Contact Us" className="w-full h-full object-cover object-top" />
             <div className="absolute inset-0 bg-foreground/60" />
           </div>
           <div className="relative z-10 text-center text-primary-foreground px-4 max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold font-poppins mb-4">Contact Us</h1>
-            <p className="text-xl opacity-90">Have a question? We're here to help.</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-poppins mb-6">Contact Us</h1>
+            <p className="text-xl lg:text-2xl opacity-90">Have a question? We're here to help.</p>
           </div>
         </section>
 
