@@ -131,9 +131,7 @@ const OfstedForm = () => {
 
     setSubmitting(true);
     try {
-      const formData = {
-        token,
-        referenceId,
+      const responseData = {
         recordsStatus,
         checkCompletedDate,
         sectionC: recordsStatus.includes("currentProvider") ? {
@@ -160,11 +158,19 @@ const OfstedForm = () => {
           capacityKnown,
           relevantInfo,
         } : null,
-        submittedAt: new Date().toISOString(),
       };
 
-      // TODO: Submit to backend when edge function is created
-      console.log("Form data:", formData);
+      // Update the database with the response
+      const { error } = await supabase
+        .from("ofsted_form_submissions")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          response_data: responseData,
+        })
+        .eq("form_token", token);
+
+      if (error) throw error;
 
       toast({
         title: "Form Submitted",
@@ -172,6 +178,7 @@ const OfstedForm = () => {
       });
       setSubmitted(true);
     } catch (error) {
+      console.error("Error submitting form:", error);
       toast({
         title: "Error",
         description: "Failed to submit form. Please try again.",

@@ -13,10 +13,49 @@ import {
   Mail,
   Calendar,
   User,
-  Building2
+  Building2,
+  Download,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { SendOfstedFormModal } from "./SendOfstedFormModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { pdf } from "@react-pdf/renderer";
+import { OfstedResponsePDF } from "./OfstedResponsePDF";
+
+interface ResponseData {
+  recordsStatus: string[];
+  checkCompletedDate: string;
+  sectionC?: {
+    uniqueRefNumber: string;
+    otherNames: string;
+    addressKnown: string;
+    dateOfRegistration: string;
+    registeredBodyName: string;
+    registrationStatus: string;
+    lastInspection: string;
+    provisionType: string;
+    registers: string;
+    telephone: string;
+    emailAddress: string;
+    provisionAddress: string;
+    childrenInfo: string;
+    conditions: string;
+    suitabilityInfo: string;
+    inspectionInfo: string;
+    safeguardingConcerns: string;
+  } | null;
+  sectionD?: {
+    otherNamesD: string;
+    capacityKnown: string;
+    relevantInfo: string;
+  } | null;
+}
 
 interface OfstedSubmission {
   id: string;
@@ -27,6 +66,8 @@ interface OfstedSubmission {
   sent_at: string;
   completed_at: string | null;
   role: string;
+  response_data: ResponseData | null;
+  date_of_birth: string | null;
 }
 
 interface KnownToOfstedCardProps {
@@ -67,6 +108,9 @@ export const KnownToOfstedCard = ({
   const [submissions, setSubmissions] = useState<OfstedSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<OfstedSubmission | null>(null);
+  const [showResponseDialog, setShowResponseDialog] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
 
   const fetchSubmissions = async () => {
     try {
@@ -89,6 +133,56 @@ export const KnownToOfstedCard = ({
   useEffect(() => {
     fetchSubmissions();
   }, [parentId, parentType]);
+
+  const handleDownloadPDF = async (submission: OfstedSubmission) => {
+    if (!submission.response_data || !submission.completed_at) return;
+    
+    setDownloadingPdf(submission.id);
+    try {
+      const blob = await pdf(
+        <OfstedResponsePDF
+          referenceId={submission.reference_id}
+          applicantName={submission.applicant_name}
+          dateOfBirth={submission.date_of_birth || ""}
+          ofstedEmail={submission.ofsted_email}
+          sentAt={submission.sent_at}
+          completedAt={submission.completed_at}
+          responseData={submission.response_data}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ofsted-response-${submission.reference_id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setDownloadingPdf(null);
+    }
+  };
+
+  const handleViewResponse = (submission: OfstedSubmission) => {
+    setSelectedSubmission(submission);
+    setShowResponseDialog(true);
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "notKnown":
+        return "Not known to Ofsted";
+      case "currentProvider":
+        return "Currently known as registered provider";
+      case "formerOrOther":
+        return "Known as former/other capacity";
+      default:
+        return status;
+    }
+  };
 
   const pendingCount = submissions.filter(s => s.status === "pending").length;
   const completedCount = submissions.filter(s => s.status === "completed").length;
@@ -126,6 +220,7 @@ export const KnownToOfstedCard = ({
     manager: 'Manager',
     nominated_individual: 'Nominated Individual',
   };
+
 
   return (
     <>
@@ -220,9 +315,29 @@ export const KnownToOfstedCard = ({
                         </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="flex-shrink-0">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {submission.status === "completed" && submission.response_data && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleViewResponse(submission)}
+                            title="View Response"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDownloadPDF(submission)}
+                            disabled={downloadingPdf === submission.id}
+                            title="Download PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -258,6 +373,110 @@ export const KnownToOfstedCard = ({
         parentType={parentType}
         onSuccess={fetchSubmissions}
       />
+
+      {/* Response View Dialog */}
+      <Dialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-[#1B9AAA]" />
+              Ofsted Response - {selectedSubmission?.reference_id}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedSubmission?.response_data && (
+            <div className="space-y-6">
+              {/* Summary */}
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <h4 className="font-semibold mb-3">Ofsted Findings</h4>
+                <div className="space-y-2">
+                  {selectedSubmission.response_data.recordsStatus.map((status, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span className="text-sm">{getStatusLabel(status)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  Check completed: {format(new Date(selectedSubmission.response_data.checkCompletedDate), "dd MMMM yyyy")}
+                </div>
+              </div>
+
+              {/* Section C Details */}
+              {selectedSubmission.response_data.sectionC && (
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-3 text-amber-700">Section C - Current Registered Provider</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {selectedSubmission.response_data.sectionC.uniqueRefNumber && (
+                      <div>
+                        <span className="text-muted-foreground">Unique Reference:</span>
+                        <p className="font-medium">{selectedSubmission.response_data.sectionC.uniqueRefNumber}</p>
+                      </div>
+                    )}
+                    {selectedSubmission.response_data.sectionC.registrationStatus && (
+                      <div>
+                        <span className="text-muted-foreground">Registration Status:</span>
+                        <p className="font-medium">{selectedSubmission.response_data.sectionC.registrationStatus}</p>
+                      </div>
+                    )}
+                    {selectedSubmission.response_data.sectionC.provisionType && (
+                      <div>
+                        <span className="text-muted-foreground">Provision Type:</span>
+                        <p className="font-medium">{selectedSubmission.response_data.sectionC.provisionType}</p>
+                      </div>
+                    )}
+                    {selectedSubmission.response_data.sectionC.lastInspection && (
+                      <div>
+                        <span className="text-muted-foreground">Last Inspection:</span>
+                        <p className="font-medium">{selectedSubmission.response_data.sectionC.lastInspection}</p>
+                      </div>
+                    )}
+                  </div>
+                  {selectedSubmission.response_data.sectionC.safeguardingConcerns && (
+                    <div className="mt-3 p-3 bg-red-50 rounded border border-red-200">
+                      <span className="text-sm font-medium text-red-700">Safeguarding Concerns:</span>
+                      <p className="text-sm mt-1">{selectedSubmission.response_data.sectionC.safeguardingConcerns}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Section D Details */}
+              {selectedSubmission.response_data.sectionD && (
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-3 text-blue-700">Section D - Former/Other Capacity</h4>
+                  <div className="space-y-3 text-sm">
+                    {selectedSubmission.response_data.sectionD.capacityKnown && (
+                      <div>
+                        <span className="text-muted-foreground">Capacity Known:</span>
+                        <p className="font-medium">{selectedSubmission.response_data.sectionD.capacityKnown}</p>
+                      </div>
+                    )}
+                    {selectedSubmission.response_data.sectionD.relevantInfo && (
+                      <div>
+                        <span className="text-muted-foreground">Relevant Information:</span>
+                        <p className="font-medium">{selectedSubmission.response_data.sectionD.relevantInfo}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Download Button */}
+              <div className="flex justify-end pt-4 border-t">
+                <Button 
+                  onClick={() => handleDownloadPDF(selectedSubmission)}
+                  disabled={downloadingPdf === selectedSubmission.id}
+                  className="gap-2 bg-[#1B9AAA] hover:bg-[#168292]"
+                >
+                  <Download className="h-4 w-4" />
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
