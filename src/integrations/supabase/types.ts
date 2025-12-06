@@ -978,6 +978,87 @@ export type Database = {
           },
         ]
       }
+      la_form_submissions: {
+        Row: {
+          applicant_name: string
+          application_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          employee_id: string | null
+          form_token: string
+          id: string
+          la_email: string
+          local_authority: string
+          reference_id: string
+          request_data: Json | null
+          requester_name: string
+          requester_role: string
+          response_data: Json | null
+          role: string
+          sent_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          applicant_name: string
+          application_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          employee_id?: string | null
+          form_token: string
+          id?: string
+          la_email: string
+          local_authority: string
+          reference_id: string
+          request_data?: Json | null
+          requester_name: string
+          requester_role: string
+          response_data?: Json | null
+          role: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          applicant_name?: string
+          application_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          employee_id?: string | null
+          form_token?: string
+          id?: string
+          la_email?: string
+          local_authority?: string
+          reference_id?: string
+          request_data?: Json | null
+          requester_name?: string
+          requester_role?: string
+          response_data?: Json | null
+          role?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "la_form_submissions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "childminder_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "la_form_submissions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ofsted_form_submissions: {
         Row: {
           applicant_name: string
