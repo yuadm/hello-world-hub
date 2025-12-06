@@ -1071,6 +1071,7 @@ export type Database = {
           id: string
           ofsted_email: string
           reference_id: string
+          request_data: Json | null
           requester_name: string
           requester_role: string
           require_child_info: boolean | null
@@ -1091,6 +1092,7 @@ export type Database = {
           id?: string
           ofsted_email: string
           reference_id: string
+          request_data?: Json | null
           requester_name: string
           requester_role: string
           require_child_info?: boolean | null
@@ -1111,6 +1113,7 @@ export type Database = {
           id?: string
           ofsted_email?: string
           reference_id?: string
+          request_data?: Json | null
           requester_name?: string
           requester_role?: string
           require_child_info?: boolean | null
