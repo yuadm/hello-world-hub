@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKProgressCard, RKSectionNav, RKFormHeader, RKButton } from "@/components/apply/rk";
+import { RKProgressCard, RKSectionNav, RKFormHeader, RKButton, RKApplyFooter } from "@/components/apply/rk";
 import { Section1PersonalDetails } from "@/components/apply/Section1PersonalDetails";
 import { Section2AddressHistory } from "@/components/apply/Section2AddressHistory";
 import { Section3Premises } from "@/components/apply/Section3Premises";
@@ -13,7 +13,7 @@ import { Section6Employment } from "@/components/apply/Section6Employment";
 import { Section7People } from "@/components/apply/Section7People";
 import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
-import { ArrowLeft, ArrowRight, X, AlertCircle, LogOut } from "lucide-react";
+import { ArrowLeft, ArrowRight, AlertCircle, LogOut, Heart } from "lucide-react";
 import { getValidatorForSection } from "@/lib/formValidation";
 import { Link } from "react-router-dom";
 
@@ -390,13 +390,13 @@ const Apply = () => {
   };
 
   return (
-    <div className="min-h-screen bg-rk-bg rk-apply">
+    <div className="min-h-screen bg-rk-bg rk-apply flex flex-col">
       {/* Header */}
-      <header className="bg-card border-b border-rk-border sticky top-0 z-50">
+      <header className="bg-white border-b border-rk-border sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-rk-primary-light flex items-center justify-center">
-              <span className="text-rk-primary font-bold text-lg font-fraunces">R</span>
+            <div className="w-12 h-12 rounded-2xl bg-rk-primary-light flex items-center justify-center">
+              <Heart className="h-6 w-6 text-rk-primary" fill="currentColor" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-rk-primary font-fraunces">ReadyKids</h1>
@@ -405,7 +405,7 @@ const Apply = () => {
           </Link>
           <Link 
             to="/" 
-            className="flex items-center gap-2 px-4 py-2 text-sm text-rk-text border border-rk-border rounded-xl hover:bg-rk-bg-form transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-rk-text bg-white border-2 border-rk-gray-300 rounded-xl hover:bg-rk-gray-100 hover:border-rk-gray-400 transition-all"
           >
             <LogOut className="h-4 w-4" />
             Save & Exit
@@ -413,37 +413,31 @@ const Apply = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
-        {/* Progress Card */}
-        <RKProgressCard 
-          currentSection={currentSection} 
-          totalSections={totalSections} 
-          className="mb-4"
-        />
-
-        {/* Section Navigation */}
-        <RKSectionNav 
-          sections={SECTIONS} 
-          currentSection={currentSection} 
-          onSectionClick={goToSection}
-          className="mb-6"
-        />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+        {/* Progress and Navigation Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          <div className="lg:col-span-3">
+            <RKProgressCard 
+              currentSection={currentSection} 
+              totalSections={totalSections} 
+            />
+          </div>
+          <div className="lg:col-span-9">
+            <RKSectionNav 
+              sections={SECTIONS} 
+              currentSection={currentSection} 
+              onSectionClick={goToSection}
+            />
+          </div>
+        </div>
 
         {/* Error Summary */}
         {errors.length > 0 && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-l-rk-error rounded-r-xl">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-rk-error flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-rk-error">Please fix the following errors:</h3>
-                  <button 
-                    onClick={() => setErrors([])} 
-                    className="text-rk-text-light hover:text-rk-text"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
+                <h3 className="font-semibold text-rk-error mb-2">Please fix the following errors:</h3>
                 <ul className="text-sm text-rk-text space-y-1">
                   {errors.map((error, index) => (
                     <li key={index}>• {error}</li>
@@ -455,67 +449,59 @@ const Apply = () => {
         )}
 
         {/* Form Container */}
-        <div className="bg-rk-bg-form rounded-2xl p-6 md:p-8 shadow-sm">
+        <div className="rk-form-container">
           <RKFormHeader 
             title="Apply to register as a childminder"
             subtitle="Complete this application to register with ReadyKids Childminder Agency."
           />
 
-          <form onSubmit={onSubmit} noValidate>
-            {renderSection()}
+          <div className="rk-form-body">
+            <form onSubmit={onSubmit} noValidate>
+              {renderSection()}
 
-            {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-10 pt-6 border-t border-rk-border">
-              {currentSection > 1 && (
-                <RKButton
-                  type="button"
-                  variant="secondary"
-                  onClick={prevSection}
-                  className="flex items-center justify-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Previous
-                </RKButton>
-              )}
+              {/* Navigation Buttons */}
+              <div className="flex flex-col-reverse sm:flex-row gap-3 mt-10 pt-6 border-t border-rk-border">
+                {currentSection > 1 && (
+                  <RKButton
+                    type="button"
+                    variant="secondary"
+                    onClick={prevSection}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Previous
+                  </RKButton>
+                )}
 
-              <div className="flex-1" />
+                <div className="flex-1" />
 
-              {currentSection < totalSections ? (
-                <RKButton
-                  type="button"
-                  variant="primary"
-                  onClick={nextSection}
-                  className="flex items-center justify-center gap-2"
-                >
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </RKButton>
-              ) : (
-                <RKButton
-                  type="submit"
-                  variant="primary"
-                  className="flex items-center justify-center gap-2"
-                >
-                  Submit Application
-                </RKButton>
-              )}
-            </div>
-          </form>
+                {currentSection < totalSections ? (
+                  <RKButton
+                    type="button"
+                    variant="primary"
+                    onClick={nextSection}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Continue
+                    <ArrowRight className="h-4 w-4" />
+                  </RKButton>
+                ) : (
+                  <RKButton
+                    type="submit"
+                    variant="primary"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Submit Application
+                  </RKButton>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-card border-t border-rk-border py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-rk-text-light">
-          © 2025 ReadyKids Childminder Agency. Ofsted URN 2012345. 
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-rk-text">Privacy Policy</a>
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-rk-text">Terms of Service</a>
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-rk-text">Contact Us</a>
-        </div>
-      </footer>
+      <RKApplyFooter />
     </div>
   );
 };

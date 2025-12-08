@@ -8,10 +8,17 @@ export interface RKSelectProps extends React.SelectHTMLAttributes<HTMLSelectElem
   error?: string;
   required?: boolean;
   options: Array<{ value: string; label: string }>;
+  widthClass?: "full" | "half" | "auto";
 }
 
 export const RKSelect = forwardRef<HTMLSelectElement, RKSelectProps>(
-  ({ label, hint, error, required, options, className, ...props }, ref) => {
+  ({ label, hint, error, required, options, widthClass = "full", className, ...props }, ref) => {
+    const widthClasses = {
+      full: "w-full",
+      half: "w-full md:w-1/2",
+      auto: "w-auto min-w-[12rem]",
+    };
+
     return (
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-rk-text">
@@ -21,13 +28,13 @@ export const RKSelect = forwardRef<HTMLSelectElement, RKSelectProps>(
         {hint && (
           <span className="block text-sm text-rk-text-light">{hint}</span>
         )}
-        <div className="relative">
+        <div className={cn("relative", widthClasses[widthClass])}>
           <select
             ref={ref}
             className={cn(
-              "w-full px-4 py-3 bg-card border-2 border-rk-border rounded-xl text-base text-rk-text appearance-none cursor-pointer transition-all duration-200",
-              "hover:border-rk-primary/50 focus:outline-none focus:border-rk-primary focus:ring-2 focus:ring-rk-primary/20",
-              error && "border-rk-error focus:border-rk-error focus:ring-rk-error/20",
+              "w-full px-4 py-3 bg-white border-2 border-rk-gray-300 rounded-xl text-base text-rk-text appearance-none cursor-pointer transition-all duration-200 pr-10",
+              "hover:border-rk-gray-400 focus:outline-none focus:border-rk-primary focus:shadow-[0_0_0_3px_hsl(163_50%_38%/0.15)]",
+              error && "border-rk-error bg-red-50 focus:border-rk-error focus:shadow-[0_0_0_3px_hsl(0_72%_55%/0.15)]",
               className
             )}
             aria-invalid={error ? "true" : "false"}

@@ -7,18 +7,18 @@ interface RKProgressCardProps {
 }
 
 export const RKProgressCard = ({ currentSection, totalSections, className }: RKProgressCardProps) => {
-  const percentage = Math.round((currentSection / totalSections) * 100);
+  const percentage = Math.round(((currentSection - 1) / totalSections) * 100);
   
   return (
-    <div className={cn("bg-card rounded-2xl p-6 shadow-sm", className)}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={cn("bg-white rounded-2xl p-6 shadow-sm", className)}>
+      <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-medium text-rk-text-light uppercase tracking-wider">Progress</span>
         <span className="text-2xl font-bold text-rk-primary font-fraunces">{percentage}%</span>
       </div>
       <p className="text-sm text-rk-text-light mb-4">Section {currentSection} of {totalSections}</p>
-      <div className="h-2 bg-rk-border rounded-full overflow-hidden">
+      <div className="h-2 bg-rk-gray-200 rounded-full overflow-hidden">
         <div 
-          className="h-full bg-rk-primary rounded-full transition-all duration-500 ease-out"
+          className="h-full bg-gradient-to-r from-rk-primary to-rk-primary-glow rounded-full transition-all duration-500 ease-out"
           style={{ width: `${percentage}%` }}
         />
       </div>

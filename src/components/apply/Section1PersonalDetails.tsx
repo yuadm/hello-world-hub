@@ -1,10 +1,7 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { GovUKInput } from "./GovUKInput";
-import { GovUKSelect } from "./GovUKSelect";
-import { GovUKRadio } from "./GovUKRadio";
-import { GovUKButton } from "./GovUKButton";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
+import { RKInput, RKSelect, RKRadio, RKButton, RKInfoBox, RKSectionTitle, RKRepeatingBlock } from "./rk";
+import { Plus, AlertCircle } from "lucide-react";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -43,10 +40,14 @@ export const Section1PersonalDetails = ({ form }: Props) => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-foreground">1. Personal Details</h2>
+      <RKSectionTitle 
+        title="Personal Details"
+        description="We need your personal information to verify your identity and process your registration."
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <GovUKSelect
+      {/* Name Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RKSelect
           label="Title"
           required
           options={[
@@ -62,21 +63,27 @@ export const Section1PersonalDetails = ({ form }: Props) => {
           {...register("title")}
         />
 
-        <div className="md:col-span-2">
-          <GovUKInput
-            label="First name(s)"
-            required
-            {...register("firstName")}
-          />
-        </div>
+        <RKInput
+          label="First name(s)"
+          required
+          {...register("firstName")}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GovUKInput label="Middle name(s) (if any)" {...register("middleNames")} />
-        <GovUKInput label="Last name" required {...register("lastName")} />
+        <RKInput 
+          label="Middle name(s)" 
+          {...register("middleNames")} 
+        />
+        <RKInput 
+          label="Last name" 
+          required 
+          {...register("lastName")} 
+        />
       </div>
 
-      <GovUKRadio
+      {/* Gender */}
+      <RKRadio
         legend="Gender"
         required
         name="gender"
@@ -88,57 +95,50 @@ export const Section1PersonalDetails = ({ form }: Props) => {
         onChange={(value) => setValue("gender", value as "Male" | "Female")}
       />
 
-      <GovUKRadio
-        legend="Have you been known by any other names?"
-        hint="This includes your name at birth if different, maiden names, or names changed by deed poll."
+      {/* Other Names */}
+      <RKRadio
+        legend="Have you ever been known by any other names?"
+        hint="Including maiden names, previous married names, or name changes"
         required
         name="otherNames"
         options={[
           { value: "Yes", label: "Yes" },
           { value: "No", label: "No" },
         ]}
-        value={otherNames}
+        value={otherNames || ""}
         onChange={(value) => setValue("otherNames", value as "Yes" | "No")}
       />
 
       {otherNames === "Yes" && (
-        <div className="mt-4 space-y-4 p-6 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))]">
-          <h3 className="text-lg font-bold">Previous Names History</h3>
+        <div className="space-y-4">
           {previousNames.map((_, index) => (
-            <div key={index} className="space-y-4 p-4 bg-white border-l-4 border-[hsl(var(--govuk-grey-border))]">
-              <div className="flex justify-between items-center">
-                <h4 className="font-semibold">Previous Name {index + 1}</h4>
-                <button
-                  type="button"
-                  onClick={() => removePreviousName(index)}
-                  className="text-[hsl(var(--govuk-red))] hover:underline flex items-center gap-1"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Remove
-                </button>
-              </div>
-              <GovUKInput
+            <RKRepeatingBlock
+              key={index}
+              title={`Previous Name ${index + 1}`}
+              onRemove={() => removePreviousName(index)}
+            >
+              <RKInput
                 label="Full name"
                 required
                 {...register(`previousNames.${index}.fullName`)}
               />
-              <div className="grid grid-cols-2 gap-4">
-                <GovUKInput
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <RKInput
                   label="From date"
                   type="date"
                   required
                   {...register(`previousNames.${index}.dateFrom`)}
                 />
-                <GovUKInput
+                <RKInput
                   label="To date"
                   type="date"
                   required
                   {...register(`previousNames.${index}.dateTo`)}
                 />
               </div>
-            </div>
+            </RKRepeatingBlock>
           ))}
-          <GovUKButton
+          <RKButton
             type="button"
             variant="secondary"
             onClick={addPreviousName}
@@ -146,13 +146,14 @@ export const Section1PersonalDetails = ({ form }: Props) => {
           >
             <Plus className="h-4 w-4" />
             Add another name
-          </GovUKButton>
+          </RKButton>
         </div>
       )}
 
-      <GovUKInput
+      {/* Date of Birth */}
+      <RKInput
         label="Date of birth"
-        hint="For example, 31 03 1980"
+        hint="You must be 18 or over to register as a childminder"
         type="date"
         required
         widthClass="10"
@@ -160,19 +161,17 @@ export const Section1PersonalDetails = ({ form }: Props) => {
       />
 
       {isUnder18 && (
-        <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))]">
-          <p className="text-sm font-bold flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            You must be at least 18 years old to register as a childminder.
-          </p>
-        </div>
+        <RKInfoBox type="error" title="Age requirement not met">
+          You must be at least 18 years old to register as a childminder.
+        </RKInfoBox>
       )}
 
-      <GovUKSelect
+      {/* Right to Work */}
+      <RKSelect
         label="Do you have the right to work in the UK?"
         required
         options={[
-          { value: "", label: "Select" },
+          { value: "", label: "Select your status" },
           { value: "British Citizen", label: "Yes, I am a British Citizen" },
           { value: "Settled Status", label: "Yes, I have Settled/Pre-settled Status" },
           { value: "Visa", label: "Yes, I have a relevant Visa" },
@@ -182,36 +181,44 @@ export const Section1PersonalDetails = ({ form }: Props) => {
       />
 
       {rightToWork === "No" && (
-        <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-          <p className="text-sm">
-            We will need to verify your right to work status. If you do not have the right to work
-            in the UK, we cannot proceed with your application.
-          </p>
-        </div>
+        <RKInfoBox type="info">
+          We will need to verify your right to work status. If you do not have the right to work
+          in the UK, we cannot proceed with your application.
+        </RKInfoBox>
       )}
 
-      <h3 className="text-xl font-bold mt-8">Contact Details</h3>
+      {/* Contact Details Section */}
+      <div className="rk-divider" />
+      
+      <RKSectionTitle 
+        title="Contact Details"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GovUKInput
+        <RKInput
           label="Email address"
           type="email"
+          placeholder="name@example.com"
           required
           {...register("email")}
         />
-        <GovUKInput
+        <RKInput
           label="Mobile number"
           type="tel"
+          placeholder="07123 456789"
           required
           {...register("phone")}
         />
       </div>
 
-      <GovUKInput
+      <div className="rk-divider" />
+
+      <RKInput
         label="National Insurance number"
-        hint="It's on your National Insurance card, benefit letter, payslip or P60. For example, 'QQ 12 34 56 C'."
+        hint="It's on your National Insurance card, benefit letter, payslip or P60. For example, 'QQ 12 34 56 C'"
+        placeholder="QQ 12 34 56 C"
         required
-        widthClass="10"
+        widthClass="20"
         {...register("niNumber")}
       />
     </div>

@@ -10,3 +10,4 @@ export { RKSectionNav } from "./RKSectionNav";
 export { RKFormHeader } from "./RKFormHeader";
 export { RKSectionTitle } from "./RKSectionTitle";
 export { RKRepeatingBlock } from "./RKRepeatingBlock";
+export { RKApplyFooter } from "./RKApplyFooter";

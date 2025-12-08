@@ -73,25 +73,40 @@ All colors MUST be HSL.
     --rk-primary: 163 50% 38%;
     --rk-primary-dark: 163 50% 32%;
     --rk-primary-light: 163 40% 92%;
+    --rk-primary-glow: 163 50% 45%;
     --rk-secondary: 212 41% 30%;
     --rk-secondary-light: 212 41% 45%;
     --rk-accent: 15 88% 55%;
+    --rk-accent-light: 15 88% 95%;
     --rk-success: 142 72% 40%;
     --rk-warning: 40 95% 50%;
     --rk-error: 0 72% 55%;
     --rk-text: 212 41% 20%;
     --rk-text-light: 212 20% 50%;
-    --rk-bg: 0 0% 98%;
+    --rk-bg: 200 20% 98%;
     --rk-bg-form: 200 20% 97%;
     --rk-border: 220 15% 90%;
     --rk-border-focus: 163 50% 38%;
+    --rk-focus: 48 100% 50%;
+    --rk-gray-50: 200 20% 98%;
+    --rk-gray-100: 200 15% 96%;
+    --rk-gray-200: 200 12% 92%;
+    --rk-gray-300: 200 10% 85%;
+    --rk-gray-400: 200 8% 65%;
+    --rk-gray-500: 200 6% 50%;
+    --rk-gray-600: 200 8% 35%;
+    --rk-gray-700: 200 10% 25%;
+    --rk-gray-800: 200 12% 15%;
+    --rk-gray-900: 200 15% 8%;
     --rk-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
     --rk-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --rk-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+    --rk-shadow-focus: 0 0 0 3px hsl(163 50% 38% / 0.15);
     --rk-radius-sm: 0.5rem;
     --rk-radius-md: 0.75rem;
     --rk-radius-lg: 1rem;
     --rk-radius-xl: 1.25rem;
+    --rk-radius-2xl: 1.5rem;
 
     --sidebar-background: 220 15% 10%;
     --sidebar-foreground: 220 10% 95%;
@@ -171,12 +186,75 @@ All colors MUST be HSL.
 /* ReadyKids Apply Page Styles */
 .rk-apply {
   font-family: 'DM Sans', sans-serif;
+  background: hsl(var(--rk-bg));
 }
 
 .rk-apply h1,
 .rk-apply h2,
 .rk-apply h3 {
   font-family: 'Fraunces', serif;
+}
+
+/* RK Form Container */
+.rk-form-container {
+  background: white;
+  border-radius: var(--rk-radius-2xl);
+  box-shadow: var(--rk-shadow-md);
+  overflow: hidden;
+}
+
+/* RK Form Header - Green gradient */
+.rk-form-header {
+  background: linear-gradient(135deg, hsl(var(--rk-primary)) 0%, hsl(var(--rk-primary-glow)) 100%);
+  padding: 2rem 2.5rem;
+  border-radius: var(--rk-radius-2xl) var(--rk-radius-2xl) 0 0;
+}
+
+.rk-form-header h1 {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  opacity: 0.95;
+}
+
+.rk-form-header p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+}
+
+/* RK Form Body */
+.rk-form-body {
+  padding: 2.5rem;
+  background: hsl(var(--rk-gray-50));
+}
+
+/* RK Section Title */
+.rk-section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(var(--rk-secondary));
+  margin-bottom: 0.5rem;
+}
+
+.rk-section-description {
+  color: hsl(var(--rk-text-light));
+  font-size: 0.9375rem;
+  margin-bottom: 1.5rem;
+}
+
+/* RK Input Focus Ring */
+.rk-input-focus {
+  outline: none;
+  border-color: hsl(var(--rk-primary)) !important;
+  box-shadow: var(--rk-shadow-focus);
+}
+
+/* RK Subsection Divider */
+.rk-divider {
+  border-top: 1px solid hsl(var(--rk-border));
+  margin: 2rem 0;
 }
 
 /* Print Styles */
