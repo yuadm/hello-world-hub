@@ -24,6 +24,11 @@ export const Section2AddressHistory = ({ form }: Props) => {
   const homeMoveIn = watch("homeMoveIn");
   const homePostcode = watch("homePostcode") || "";
 
+  // Create a serialized key of all dates to trigger recalculation when nested values change
+  const addressHistoryDatesKey = useMemo(() => {
+    return addressHistory.map(entry => `${entry.moveIn || ''}-${entry.moveOut || ''}`).join('|');
+  }, [addressHistory]);
+
   // Calculate address history coverage
   const coverage = useMemo(() => {
     if (!homeMoveIn) return null;
@@ -32,7 +37,8 @@ export const Section2AddressHistory = ({ form }: Props) => {
       { moveIn: homeMoveIn },
       addressHistory
     );
-  }, [homeMoveIn, addressHistory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [homeMoveIn, addressHistory, addressHistoryDatesKey]);
 
   const addAddressHistory = () => {
     setValue("addressHistory", [
