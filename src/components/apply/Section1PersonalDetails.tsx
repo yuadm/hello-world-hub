@@ -97,8 +97,8 @@ export const Section1PersonalDetails = ({ form }: Props) => {
 
       {/* Other Names */}
       <RKRadio
-        legend="Have you ever been known by any other names?"
-        hint="Including maiden names, previous married names, or name changes"
+        legend="Have you been known by any other names?"
+        hint="This includes your name at birth if different, maiden names, or names changed by deed poll."
         required
         name="otherNames"
         options={[
@@ -153,7 +153,7 @@ export const Section1PersonalDetails = ({ form }: Props) => {
       {/* Date of Birth */}
       <RKInput
         label="Date of birth"
-        hint="You must be 18 or over to register as a childminder"
+        hint="For example, 31 03 1980"
         type="date"
         required
         widthClass="10"
@@ -171,7 +171,7 @@ export const Section1PersonalDetails = ({ form }: Props) => {
         label="Do you have the right to work in the UK?"
         required
         options={[
-          { value: "", label: "Select your status" },
+          { value: "", label: "Select" },
           { value: "British Citizen", label: "Yes, I am a British Citizen" },
           { value: "Settled Status", label: "Yes, I have Settled/Pre-settled Status" },
           { value: "Visa", label: "Yes, I have a relevant Visa" },
