@@ -106,13 +106,29 @@ export const DBSVettingCard = ({
           <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3">
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div>
+              <div className="flex-1">
                 <div className="text-xs font-medium text-amber-900 dark:text-amber-100 mb-1">
                   Offence history declared
                 </div>
                 {convictionsDetails && (
-                  <div className="text-xs text-amber-700 dark:text-amber-200 mt-1">
-                    {convictionsDetails}
+                  <div className="text-xs text-amber-700 dark:text-amber-200 mt-2 space-y-2">
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(convictionsDetails);
+                        if (Array.isArray(parsed)) {
+                          return parsed.map((item: any, idx: number) => (
+                            <div key={idx} className="bg-amber-100/50 dark:bg-amber-900/30 rounded p-2">
+                              {item.date && <div><span className="font-medium">Date:</span> {item.date}</div>}
+                              {item.description && <div><span className="font-medium">Description:</span> {item.description}</div>}
+                              {item.outcome && <div><span className="font-medium">Outcome:</span> {item.outcome}</div>}
+                            </div>
+                          ));
+                        }
+                        return convictionsDetails;
+                      } catch {
+                        return convictionsDetails;
+                      }
+                    })()}
                   </div>
                 )}
               </div>
@@ -127,8 +143,38 @@ export const DBSVettingCard = ({
             <div className="rounded-lg bg-muted/30 p-3">
               <Badge variant="outline" className="text-xs mb-2">Previous Registration</Badge>
               {registrationDetails && (
-                <div className="text-xs text-muted-foreground mt-2">
-                  {JSON.stringify(registrationDetails)}
+                <div className="text-xs text-muted-foreground mt-2 space-y-3">
+                  {(() => {
+                    const details = typeof registrationDetails === 'string' 
+                      ? JSON.parse(registrationDetails) 
+                      : registrationDetails;
+                    
+                    const renderSection = (title: string, items: any[]) => {
+                      if (!items || items.length === 0) return null;
+                      return (
+                        <div key={title}>
+                          <div className="font-medium text-foreground mb-1">{title}</div>
+                          {items.map((item: any, idx: number) => (
+                            <div key={idx} className="bg-background/50 rounded p-2 mb-1 text-xs">
+                              {item.regulator && <div><span className="font-medium">Regulator:</span> {item.regulator}</div>}
+                              {item.registrationNumber && <div><span className="font-medium">Reg. Number:</span> {item.registrationNumber}</div>}
+                              {item.dates && <div><span className="font-medium">Dates:</span> {item.dates}</div>}
+                              {item.status && <div><span className="font-medium">Status:</span> {item.status}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    };
+
+                    return (
+                      <>
+                        {renderSection('Ofsted', details.ofsted)}
+                        {renderSection('Other UK', details.otherUK)}
+                        {renderSection('EU/EEA', details.eu)}
+                        {renderSection('Childminding Agency', details.agency)}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
