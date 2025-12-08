@@ -413,22 +413,22 @@ const Apply = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-        {/* Progress and Navigation Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          <div className="lg:col-span-3">
-            <RKProgressCard 
-              currentSection={currentSection} 
-              totalSections={totalSections} 
-            />
-          </div>
-          <div className="lg:col-span-9">
-            <RKSectionNav 
-              sections={SECTIONS} 
-              currentSection={currentSection} 
-              onSectionClick={goToSection}
-            />
-          </div>
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
+        {/* Progress Card */}
+        <div className="mb-6">
+          <RKProgressCard 
+            currentSection={currentSection} 
+            totalSections={totalSections} 
+          />
+        </div>
+
+        {/* Section Navigation */}
+        <div className="mb-8">
+          <RKSectionNav 
+            sections={SECTIONS} 
+            currentSection={currentSection} 
+            onSectionClick={goToSection}
+          />
         </div>
 
         {/* Error Summary */}
