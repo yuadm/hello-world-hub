@@ -3,9 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ChildminderApplication } from "@/types/childminder";
-import { ProgressBar } from "@/components/apply/ProgressBar";
-import { ErrorSummary } from "@/components/apply/ErrorSummary";
-import { GovUKButton } from "@/components/apply/GovUKButton";
+import { RKProgressCard, RKSectionNav, RKFormHeader, RKButton } from "@/components/apply/rk";
 import { Section1PersonalDetails } from "@/components/apply/Section1PersonalDetails";
 import { Section2AddressHistory } from "@/components/apply/Section2AddressHistory";
 import { Section3Premises } from "@/components/apply/Section3Premises";
@@ -15,9 +13,21 @@ import { Section6Employment } from "@/components/apply/Section6Employment";
 import { Section7People } from "@/components/apply/Section7People";
 import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, AlertCircle, LogOut } from "lucide-react";
 import { getValidatorForSection } from "@/lib/formValidation";
-import Navigation from "@/components/Navigation";
+import { Link } from "react-router-dom";
+
+const SECTIONS = [
+  { id: 1, label: "Personal Details" },
+  { id: 2, label: "Address History" },
+  { id: 3, label: "Premises" },
+  { id: 4, label: "Service" },
+  { id: 5, label: "Qualifications" },
+  { id: 6, label: "Employment" },
+  { id: 7, label: "Household" },
+  { id: 8, label: "Suitability" },
+  { id: 9, label: "Declaration" },
+];
 
 const Apply = () => {
   const [currentSection, setCurrentSection] = useState(1);
@@ -95,7 +105,6 @@ const Apply = () => {
   }, [form]);
 
   const nextSection = () => {
-    // Validate current section before proceeding
     const validator = getValidatorForSection(currentSection);
     const validation = validator(form.getValues());
     
@@ -120,10 +129,15 @@ const Apply = () => {
     }
   };
 
+  const goToSection = (section: number) => {
+    setErrors([]);
+    setCurrentSection(section);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Get all form values directly
     const data = form.getValues();
     
     // Final validation of all sections
@@ -143,11 +157,9 @@ const Apply = () => {
     }
 
     try {
-      // Submit to database with proper column mapping
       const { data: applicationData, error } = await supabase
         .from('childminder_applications')
         .insert({
-          // Personal Details
           title: data.title,
           first_name: data.firstName,
           middle_names: data.middleNames,
@@ -159,8 +171,6 @@ const Apply = () => {
           email: data.email,
           phone_mobile: data.phone,
           right_to_work: data.rightToWork,
-          
-          // Address
           home_postcode: data.homePostcode,
           current_address: data.homeAddress,
           home_move_in: data.homeMoveIn,
@@ -168,8 +178,6 @@ const Apply = () => {
           address_gaps: data.addressGaps,
           lived_outside_uk: data.livedOutsideUK,
           military_base: data.militaryBase,
-          
-          // Premises
           same_address: data.sameAddress,
           premises_address: data.childcareAddress || data.homeAddress,
           premises_ownership: data.premisesType,
@@ -178,8 +186,6 @@ const Apply = () => {
           outdoor_space: data.outdoorSpace,
           premises_animals: data.pets,
           premises_animal_details: data.petsDetails,
-          
-          // Service Details
           service_type: data.premisesType,
           service_age_range: data.ageGroups,
           work_with_others: data.workWithOthers,
@@ -193,8 +199,6 @@ const Apply = () => {
           service_hours: data.childcareTimes,
           overnight_care: data.overnightCare,
           service_local_authority: data.localAuthority,
-          
-          // Qualifications & Employment
           qualifications: {
             firstAid: data.firstAid,
             safeguarding: data.safeguarding,
@@ -219,8 +223,6 @@ const Apply = () => {
               childcare: data.reference2Childcare
             }
           },
-          
-          // People
           adults_in_home: data.adultsInHome,
           children_in_home: data.childrenInHome,
           people_in_household: {
@@ -228,8 +230,6 @@ const Apply = () => {
             children: data.children
           },
           people_regular_contact: data.assistants,
-          
-          // Suitability
           previous_registration: data.prevRegOfsted,
           prev_reg_agency: data.prevRegAgency,
           prev_reg_other_uk: data.prevRegOtherUK,
@@ -254,8 +254,6 @@ const Apply = () => {
           convictions_details: data.offenceDetails ? JSON.stringify(data.offenceDetails) : null,
           safeguarding_concerns: data.socialServices,
           safeguarding_details: data.socialServicesDetails,
-          
-          // Declaration
           declaration_confirmed: data.declarationAccuracy,
           declaration_change_notification: data.declarationChangeNotification,
           declaration_inspection_cooperation: data.declarationInspectionCooperation,
@@ -264,8 +262,6 @@ const Apply = () => {
           declaration_signature: data.signatureFullName,
           declaration_date: data.signatureDate,
           payment_method: data.paymentMethod,
-          
-          // No user_id - allowing anonymous submissions
           user_id: null,
           status: 'pending'
         } as any)
@@ -277,11 +273,10 @@ const Apply = () => {
         throw error;
       }
 
-      // Create compliance records for household members and assistants
+      // Create compliance records
       if (applicationData?.id) {
         const applicationId = applicationData.id;
         
-        // Helper function to calculate age
         const calculateAge = (dob: string): number => {
           const birthDate = new Date(dob);
           const today = new Date();
@@ -293,10 +288,8 @@ const Apply = () => {
           return age;
         };
 
-        // Create household member records
         const householdMemberRecords = [];
         
-        // Process adults
         if (data.adults && Array.isArray(data.adults)) {
           for (const adult of data.adults) {
             householdMemberRecords.push({
@@ -310,7 +303,6 @@ const Apply = () => {
           }
         }
 
-        // Process children (check if any are 16+ and mark as adult)
         if (data.children && Array.isArray(data.children)) {
           for (const child of data.children) {
             const age = child.dob ? calculateAge(child.dob) : 0;
@@ -335,7 +327,6 @@ const Apply = () => {
           }
         }
 
-        // Create assistant records
         if (data.assistants && Array.isArray(data.assistants)) {
           const assistantRecords = data.assistants.map((assistant: any) => ({
             application_id: applicationId,
@@ -364,7 +355,6 @@ const Apply = () => {
       toast.success("Application submitted successfully! We'll review and be in touch soon.");
       localStorage.removeItem("childminder-application");
       
-      // Redirect to home after 2 seconds
       setTimeout(() => {
         window.location.href = '/';
       }, 2000);
@@ -400,59 +390,132 @@ const Apply = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--govuk-grey-background))]">
-      <Navigation />
+    <div className="min-h-screen bg-rk-bg rk-apply">
+      {/* Header */}
+      <header className="bg-card border-b border-rk-border sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-rk-primary-light flex items-center justify-center">
+              <span className="text-rk-primary font-bold text-lg font-fraunces">R</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-rk-primary font-fraunces">ReadyKids</h1>
+              <p className="text-xs text-rk-text-light font-dm-sans">Childminder Registration</p>
+            </div>
+          </Link>
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 px-4 py-2 text-sm text-rk-text border border-rk-border rounded-xl hover:bg-rk-bg-form transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Save & Exit
+          </Link>
+        </div>
+      </header>
 
-      <main className="container mx-auto px-4 md:px-8 py-8 pt-24 pb-16">
-        <div className="max-w-4xl mx-auto bg-white p-6 md:p-10 shadow-lg">
-          <h1 className="text-4xl font-extrabold mb-6 leading-tight text-foreground">
-            Apply to register as a childminder
-          </h1>
+      <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
+        {/* Progress Card */}
+        <RKProgressCard 
+          currentSection={currentSection} 
+          totalSections={totalSections} 
+          className="mb-4"
+        />
 
-          <ErrorSummary errors={errors} onClose={() => setErrors([])} />
+        {/* Section Navigation */}
+        <RKSectionNav 
+          sections={SECTIONS} 
+          currentSection={currentSection} 
+          onSectionClick={goToSection}
+          className="mb-6"
+        />
 
-          <ProgressBar currentSection={currentSection} totalSections={totalSections} />
+        {/* Error Summary */}
+        {errors.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-rk-error flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-rk-error">Please fix the following errors:</h3>
+                  <button 
+                    onClick={() => setErrors([])} 
+                    className="text-rk-text-light hover:text-rk-text"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <ul className="text-sm text-rk-text space-y-1">
+                  {errors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Form Container */}
+        <div className="bg-rk-bg-form rounded-2xl p-6 md:p-8 shadow-sm">
+          <RKFormHeader 
+            title="Apply to register as a childminder"
+            subtitle="Complete this application to register with ReadyKids Childminder Agency."
+          />
 
           <form onSubmit={onSubmit} noValidate>
             {renderSection()}
 
             {/* Navigation Buttons */}
-            <div className="flex gap-4 mt-8 pt-6 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-3 mt-10 pt-6 border-t border-rk-border">
               {currentSection > 1 && (
-                <GovUKButton
+                <RKButton
                   type="button"
                   variant="secondary"
                   onClick={prevSection}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Previous
-                </GovUKButton>
+                </RKButton>
               )}
 
+              <div className="flex-1" />
+
               {currentSection < totalSections ? (
-                <GovUKButton
+                <RKButton
                   type="button"
                   variant="primary"
                   onClick={nextSection}
-                  className="flex items-center gap-2 ml-auto"
+                  className="flex items-center justify-center gap-2"
                 >
-                  Next
+                  Continue
                   <ArrowRight className="h-4 w-4" />
-                </GovUKButton>
+                </RKButton>
               ) : (
-                <GovUKButton
+                <RKButton
                   type="submit"
                   variant="primary"
-                  className="ml-auto"
+                  className="flex items-center justify-center gap-2"
                 >
                   Submit Application
-                </GovUKButton>
+                </RKButton>
               )}
             </div>
           </form>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-card border-t border-rk-border py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-rk-text-light">
+          © 2025 ReadyKids Childminder Agency. Ofsted URN 2012345. 
+          <span className="mx-2">|</span>
+          <a href="#" className="hover:text-rk-text">Privacy Policy</a>
+          <span className="mx-2">|</span>
+          <a href="#" className="hover:text-rk-text">Terms of Service</a>
+          <span className="mx-2">|</span>
+          <a href="#" className="hover:text-rk-text">Contact Us</a>
+        </div>
+      </footer>
     </div>
   );
 };

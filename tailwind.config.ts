@@ -16,6 +16,8 @@ export default {
       fontFamily: {
         poppins: ['Poppins', 'sans-serif'],
         'open-sans': ['Open Sans', 'sans-serif'],
+        'dm-sans': ['DM Sans', 'sans-serif'],
+        'fraunces': ['Fraunces', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -62,6 +64,22 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         logo: "hsl(var(--logo))",
+        rk: {
+          primary: "hsl(var(--rk-primary))",
+          "primary-dark": "hsl(var(--rk-primary-dark))",
+          "primary-light": "hsl(var(--rk-primary-light))",
+          secondary: "hsl(var(--rk-secondary))",
+          "secondary-light": "hsl(var(--rk-secondary-light))",
+          accent: "hsl(var(--rk-accent))",
+          success: "hsl(var(--rk-success))",
+          warning: "hsl(var(--rk-warning))",
+          error: "hsl(var(--rk-error))",
+          text: "hsl(var(--rk-text))",
+          "text-light": "hsl(var(--rk-text-light))",
+          bg: "hsl(var(--rk-bg))",
+          "bg-form": "hsl(var(--rk-bg-form))",
+          border: "hsl(var(--rk-border))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
