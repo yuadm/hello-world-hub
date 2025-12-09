@@ -1,6 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKRadio, RKInput, RKButton, RKSectionTitle, RKInfoBox, RKCheckbox } from "./rk";
+import { RKRadio, RKInput, RKButton, RKSectionTitle, RKInfoBox, RKCheckbox, RKSelect } from "./rk";
 import { useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import {
@@ -157,19 +157,16 @@ export const Section4Service = ({ form }: Props) => {
                   required
                   {...register(`assistants.${index}.dob`)}
                 />
-                <div className="space-y-1">
-                  <label className="block text-sm font-medium text-rk-text">
-                    Role<span className="text-rk-error ml-1">*</span>
-                  </label>
-                  <select
-                    className="rk-input w-full"
-                    {...register(`assistants.${index}.role`)}
-                  >
-                    <option value="">Select role</option>
-                    <option value="Assistant">Assistant</option>
-                    <option value="Co-childminder">Co-childminder</option>
-                  </select>
-                </div>
+                <RKSelect
+                  label="Role"
+                  required
+                  options={[
+                    { value: "", label: "Select role" },
+                    { value: "Assistant", label: "Assistant" },
+                    { value: "Co-childminder", label: "Co-childminder" },
+                  ]}
+                  {...register(`assistants.${index}.role`)}
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <RKInput

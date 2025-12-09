@@ -159,12 +159,15 @@ export function validateSection4(data: Partial<ChildminderApplication>): Validat
     errors.push("Please select at least one childcare time");
   }
 
-  if (data.proposedUnder5 === undefined) errors.push("Number of children under 5 is required");
-  if (data.proposed5to8 === undefined) errors.push("Number of children 5-8 is required");
-  if (data.proposed8plus === undefined) errors.push("Number of children 8+ is required");
-
   if (!data.workWithOthers) errors.push("Please indicate if you'll work with others");
   if (!data.overnightCare) errors.push("Please indicate if you'll provide overnight care");
+
+  // Validate assistants if working with others
+  if (data.workWithOthers === "Yes" && data.numberOfAssistants && data.numberOfAssistants > 0) {
+    if (!data.assistants || data.assistants.length === 0) {
+      errors.push("Please add assistant details");
+    }
+  }
 
   return { isValid: errors.length === 0, errors };
 }
