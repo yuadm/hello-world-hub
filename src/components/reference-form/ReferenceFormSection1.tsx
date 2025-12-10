@@ -1,6 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
-import { GovUKInput } from "@/components/apply/GovUKInput";
-import { GovUKRadio } from "@/components/apply/GovUKRadio";
+import { RKInput, RKSectionTitle, RKInfoBox } from "@/components/apply/rk";
+import { User } from "lucide-react";
 
 interface ReferenceFormData {
   confirmedRelationship: string;
@@ -22,6 +22,7 @@ interface ReferenceFormData {
   additionalInformation?: string;
   declarationAccurate: boolean;
   signatureName: string;
+  signaturePrintName: string;
   signatureDate: string;
 }
 
@@ -32,34 +33,43 @@ interface Props {
 }
 
 export const ReferenceFormSection1 = ({ form, refereeName, applicantName }: Props) => {
-  const { register, watch, setValue } = form;
+  const { register } = form;
 
   return (
     <div className="space-y-6">
-      <div className="p-4 bg-[hsl(var(--govuk-inset-blue-bg))] border-l-[10px] border-[hsl(var(--govuk-blue))]">
-        <p className="text-sm">
-          <strong>Applicant:</strong> {applicantName}
-        </p>
-        <p className="text-sm mt-1">
-          <strong>Your name:</strong> {refereeName}
-        </p>
+      <RKSectionTitle 
+        title="1. Confirmation" 
+        description="Confirm your relationship with the applicant"
+      />
+
+      <RKInfoBox type="info" title="Reference Details">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            <span><strong>Applicant:</strong> {applicantName}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            <span><strong>Your name:</strong> {refereeName}</span>
+          </div>
+        </div>
+      </RKInfoBox>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RKInput
+          label="Relationship to applicant"
+          hint="For example: Former employer, colleague, friend, etc."
+          required
+          {...register("confirmedRelationship")}
+        />
+
+        <RKInput
+          label="How long have you known them?"
+          hint="For example: 5 years, 10 years, etc."
+          required
+          {...register("knownForYears")}
+        />
       </div>
-
-      <h2 className="text-2xl font-bold text-foreground">1. Confirmation</h2>
-
-      <GovUKInput
-        label="Please confirm your relationship to the applicant"
-        hint="For example: Former employer, colleague, friend, etc."
-        required
-        {...register("confirmedRelationship")}
-      />
-
-      <GovUKInput
-        label="How long have you known the applicant?"
-        hint="For example: 5 years, 10 years, etc."
-        required
-        {...register("knownForYears")}
-      />
     </div>
   );
 };

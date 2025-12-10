@@ -1,6 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { GovUKTextarea } from "@/components/apply/GovUKTextarea";
-import { GovUKRadio } from "@/components/apply/GovUKRadio";
+import { RKTextarea, RKRadio, RKSectionTitle, RKInfoBox } from "@/components/apply/rk";
 
 interface ReferenceFormData {
   confirmedRelationship: string;
@@ -22,6 +21,7 @@ interface ReferenceFormData {
   additionalInformation?: string;
   declarationAccurate: boolean;
   signatureName: string;
+  signaturePrintName: string;
   signatureDate: string;
 }
 
@@ -40,15 +40,16 @@ export const ReferenceFormSection3 = ({ form, isChildcareReference }: Props) => 
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">3. Childcare Suitability</h2>
+      <RKSectionTitle 
+        title="3. Childcare Suitability" 
+        description="Assessment of suitability to work with children"
+      />
       
-      <div className="p-4 bg-[hsl(var(--govuk-inset-yellow-bg))] border-l-[10px] border-[hsl(var(--govuk-yellow))]">
-        <p className="text-sm">
-          This section is required as this is a childcare-related reference.
-        </p>
-      </div>
+      <RKInfoBox type="warning" title="Childcare Reference">
+        This section is required as this is a childcare-related reference.
+      </RKInfoBox>
 
-      <GovUKRadio
+      <RKRadio
         legend="Have you observed the applicant working with or caring for children?"
         required
         name="observedWithChildren"
@@ -56,21 +57,21 @@ export const ReferenceFormSection3 = ({ form, isChildcareReference }: Props) => 
           { value: "Yes", label: "Yes" },
           { value: "No", label: "No" },
         ]}
-        value={observedWithChildren}
+        value={observedWithChildren || ""}
         onChange={(value) => setValue("observedWithChildren", value as "Yes" | "No")}
       />
 
       {observedWithChildren === "Yes" && (
-        <GovUKTextarea
+        <RKTextarea
           label="Please describe how they interact with children"
           hint="Include specific examples of their interactions, behavior, and approach with children"
           required
-          rows={6}
+          rows={5}
           {...register("interactionDescription")}
         />
       )}
 
-      <GovUKTextarea
+      <RKTextarea
         label="Do you have any concerns about their suitability to work with children?"
         hint="Please be honest and specific. If you have no concerns, please state 'No concerns'"
         required
