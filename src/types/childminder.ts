@@ -37,6 +37,8 @@ export interface PersonEntry {
   fullName: string;
   relationship: string;
   dob: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface AssistantEntry {

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKInput, RKSectionTitle, RKTextarea, RKRadio } from "./rk";
+import { RKInput, RKSectionTitle, RKTextarea, RKRadio, RKInfoBox } from "./rk";
 import { Plus } from "lucide-react";
 
 interface Props {
@@ -121,6 +121,9 @@ export const Section6Employment = ({ form }: Props) => {
         <p className="text-sm text-gray-600 -mt-2">
           Provide details for two referees. They must not be related to you.
         </p>
+        <RKInfoBox type="warning">
+          If you have worked with children in the past 5 years, one reference MUST be from your most recent childcare employer.
+        </RKInfoBox>
 
         {/* Reference 1 */}
         <div className="p-5 bg-white border border-gray-200 rounded-xl space-y-4">

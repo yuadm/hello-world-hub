@@ -38,7 +38,7 @@ export const Section7People = ({ form }: Props) => {
     <div className="space-y-8">
       <RKSectionTitle 
         title="Household Members"
-        description="Tell us about other people living or working at your childminding premises."
+        description="We must ensure the suitability of everyone connected to your registration. This includes staff working with you and people living or working at the premises."
       />
 
       <RKInfoBox type="info">
@@ -65,6 +65,9 @@ export const Section7People = ({ form }: Props) => {
 
           {adultsInHome === "Yes" && (
             <div className="space-y-4">
+              <RKInfoBox type="info">
+                These individuals must complete a suitability check (Form CMA-H2) including an enhanced DBS check. Please provide their basic details below.
+              </RKInfoBox>
               {adults.map((_, index) => (
                 <div
                   key={index}
@@ -101,6 +104,20 @@ export const Section7People = ({ form }: Props) => {
                     widthClass="10"
                     {...register(`adults.${index}.dob`)}
                   />
+                  <div className="rk-address-grid">
+                    <RKInput 
+                      label="Email address" 
+                      type="email"
+                      required
+                      {...register(`adults.${index}.email`)} 
+                    />
+                    <RKInput 
+                      label="Mobile number"
+                      type="tel"
+                      required
+                      {...register(`adults.${index}.phone`)} 
+                    />
+                  </div>
                 </div>
               ))}
               <RKButton
