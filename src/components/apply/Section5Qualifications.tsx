@@ -1,6 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKRadio, RKInput, RKSectionTitle, RKInfoBox } from "./rk";
+import { RKRadio, RKInput, RKSectionTitle, RKInfoBox, RKTextarea } from "./rk";
 import { Info } from "lucide-react";
 import { useState } from "react";
 
@@ -217,9 +217,10 @@ export const Section5Qualifications = ({ form }: Props) => {
 
       {/* Other relevant training */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <RKInput
+        <RKTextarea
           label="Other relevant training or qualifications"
           hint="Please list any other relevant training (e.g SEND, Behaviour Management)"
+          rows={4}
           {...register("otherTraining")}
         />
       </div>

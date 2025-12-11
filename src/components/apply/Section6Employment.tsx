@@ -56,12 +56,12 @@ export const Section6Employment = ({ form }: Props) => {
                 </button>
               </div>
               <RKInput
-                label="Employer name"
+                label="Employer or Education Provider name"
                 required
                 {...register(`employmentHistory.${index}.employer`)}
               />
               <RKInput 
-                label="Job title" 
+                label="Job title or Course Studied" 
                 required
                 {...register(`employmentHistory.${index}.role`)} 
               />
@@ -79,6 +79,10 @@ export const Section6Employment = ({ form }: Props) => {
                   {...register(`employmentHistory.${index}.endDate`)}
                 />
               </div>
+              <RKInput
+                label="Reason for leaving (if applicable)"
+                {...register(`employmentHistory.${index}.reasonForLeaving`)}
+              />
             </div>
           ))}
         </div>
