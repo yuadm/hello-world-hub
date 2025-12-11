@@ -804,8 +804,8 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
                   <View key={index} style={styles.card}>
                     <Text style={styles.cardText}>Regulator: {reg.regulator}</Text>
                     <Text style={styles.cardText}>Registration Number: {reg.registrationNumber}</Text>
-                    <Text style={styles.cardText}>Dates: {reg.dates}</Text>
-                    <Text style={styles.cardText}>Status: {reg.status}</Text>
+                    <Text style={styles.cardText}>Start Date: {reg.startDate}</Text>
+                    <Text style={styles.cardText}>End Date: {reg.endDate || "Still registered"}</Text>
                   </View>
                 ))}
               </View>

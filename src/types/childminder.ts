@@ -58,8 +58,8 @@ export interface ChildEntry {
 export interface RegistrationEntry {
   regulator: string;
   registrationNumber: string;
-  dates: string;
-  status: string;
+  startDate: string;
+  endDate?: string;
 }
 
 export interface OffenceEntry {

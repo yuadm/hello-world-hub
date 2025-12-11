@@ -1,10 +1,109 @@
-import { UseFormReturn } from "react-hook-form";
-import { ChildminderApplication } from "@/types/childminder";
-import { RKInput, RKRadio, RKTextarea, RKSectionTitle, RKInfoBox } from "./rk";
+import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { ChildminderApplication, RegistrationEntry } from "@/types/childminder";
+import { RKInput, RKRadio, RKTextarea, RKSectionTitle, RKInfoBox, RKButton } from "./rk";
+import { Plus, X } from "lucide-react";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
 }
+
+const emptyRegistration: RegistrationEntry = {
+  regulator: "",
+  registrationNumber: "",
+  startDate: "",
+  endDate: "",
+};
+
+interface RegistrationBlockProps {
+  form: UseFormReturn<Partial<ChildminderApplication>>;
+  fieldName: "prevRegOfstedDetails" | "prevRegAgencyDetails" | "prevRegOtherUKDetails" | "prevRegEUDetails";
+  addLabel: string;
+}
+
+const RegistrationBlock = ({ form, fieldName, addLabel }: RegistrationBlockProps) => {
+  const { control, register, watch, setValue } = form;
+  const entries = watch(fieldName) as RegistrationEntry[] || [{ ...emptyRegistration }];
+
+  const addEntry = () => {
+    setValue(fieldName, [...entries, { ...emptyRegistration }]);
+  };
+
+  const removeEntry = (index: number) => {
+    if (entries.length > 1) {
+      setValue(fieldName, entries.filter((_, i) => i !== index));
+    }
+  };
+
+  // Initialize with one empty entry if empty
+  if (entries.length === 0) {
+    setValue(fieldName, [{ ...emptyRegistration }]);
+  }
+
+  return (
+    <div className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-6">
+      {entries.map((entry, index) => (
+        <div key={index} className="space-y-4">
+          {entries.length > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-[#334155]">Registration {index + 1}</span>
+              <button
+                type="button"
+                onClick={() => removeEntry(index)}
+                className="text-sm text-[#DC2626] hover:text-[#B91C1C] flex items-center gap-1"
+              >
+                <X className="w-4 h-4" />
+                Remove this registration
+              </button>
+            </div>
+          )}
+          {entries.length === 1 && (
+            <span className="text-sm font-medium text-[#334155]">Registration 1</span>
+          )}
+          
+          <RKInput
+            label="Name of regulatory body/agency"
+            required
+            {...register(`${fieldName}.${index}.regulator` as const)}
+          />
+          
+          <RKInput
+            label="Registration reference number (URN)"
+            required
+            widthClass="20"
+            {...register(`${fieldName}.${index}.registrationNumber` as const)}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <RKInput
+              label="Start date"
+              type="date"
+              required
+              {...register(`${fieldName}.${index}.startDate` as const)}
+            />
+            
+            <RKInput
+              label="End date"
+              type="date"
+              hint="Leave blank if still registered."
+              {...register(`${fieldName}.${index}.endDate` as const)}
+            />
+          </div>
+
+          {index < entries.length - 1 && <div className="rk-divider" />}
+        </div>
+      ))}
+      
+      <button
+        type="button"
+        onClick={addEntry}
+        className="flex items-center gap-2 text-sm font-medium text-[hsl(163,50%,38%)] hover:text-[hsl(163,50%,30%)] transition-colors"
+      >
+        <Plus className="w-4 h-4" />
+        {addLabel}
+      </button>
+    </div>
+  );
+};
 
 export const Section8Suitability = ({ form }: Props) => {
   const { register, watch, setValue } = form;
@@ -40,6 +139,14 @@ export const Section8Suitability = ({ form }: Props) => {
         onChange={(value) => setValue("prevRegOfsted", value as "Yes" | "No")} 
       />
 
+      {prevRegOfsted === "Yes" && (
+        <RegistrationBlock 
+          form={form} 
+          fieldName="prevRegOfstedDetails" 
+          addLabel="Add Ofsted registration" 
+        />
+      )}
+
       <RKRadio 
         legend="Another Childminder Agency" 
         required 
@@ -48,6 +155,14 @@ export const Section8Suitability = ({ form }: Props) => {
         value={prevRegAgency || ""} 
         onChange={(value) => setValue("prevRegAgency", value as "Yes" | "No")} 
       />
+
+      {prevRegAgency === "Yes" && (
+        <RegistrationBlock 
+          form={form} 
+          fieldName="prevRegAgencyDetails" 
+          addLabel="Add agency registration" 
+        />
+      )}
 
       <RKRadio 
         legend="Another regulatory authority in the UK (e.g., Scotland, Wales, Northern Ireland)" 
@@ -58,6 +173,14 @@ export const Section8Suitability = ({ form }: Props) => {
         onChange={(value) => setValue("prevRegOtherUK", value as "Yes" | "No")} 
       />
 
+      {prevRegOtherUK === "Yes" && (
+        <RegistrationBlock 
+          form={form} 
+          fieldName="prevRegOtherUKDetails" 
+          addLabel="Add registration" 
+        />
+      )}
+
       <RKRadio 
         legend="A regulatory body in a European Union member state" 
         required 
@@ -66,6 +189,14 @@ export const Section8Suitability = ({ form }: Props) => {
         value={prevRegEU || ""} 
         onChange={(value) => setValue("prevRegEU", value as "Yes" | "No")} 
       />
+
+      {prevRegEU === "Yes" && (
+        <RegistrationBlock 
+          form={form} 
+          fieldName="prevRegEUDetails" 
+          addLabel="Add registration" 
+        />
+      )}
 
       <div className="rk-divider" />
 
