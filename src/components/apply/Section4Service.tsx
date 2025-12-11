@@ -113,6 +113,19 @@ export const Section4Service = ({ form }: Props) => {
         </div>
       </div>
 
+      <div className="rk-divider" />
+      
+      <h3 className="rk-subsection-title">People Connected to Your Application</h3>
+      <p className="text-sm text-rk-text-light -mt-2 mb-4">
+        We must ensure the suitability of everyone connected to your registration. This includes staff working with you and people living or working at the premises.
+      </p>
+
+      <h4 className="font-semibold text-rk-text mb-2">Assistants and Co-childminders Details</h4>
+      <RKInfoBox type="info">
+        Anyone working with you must complete a full suitability check (Form CMA-A1). 
+        Please provide their basic details below so we can initiate their application.
+      </RKInfoBox>
+
       <RKRadio
         legend="Will you work with any assistants or co-childminders?"
         required
@@ -140,18 +153,6 @@ export const Section4Service = ({ form }: Props) => {
 
       {workWithOthers === "Yes" && numberOfAssistants > 0 && (
         <>
-          <div className="rk-divider" />
-          
-          <h3 className="rk-subsection-title">People Connected to Your Application</h3>
-          <p className="text-sm text-rk-text-light -mt-2 mb-4">
-            We must ensure the suitability of everyone connected to your registration. This includes staff working with you and people living or working at the premises.
-          </p>
-
-          <h4 className="font-semibold text-rk-text mb-2">Assistants and Co-childminders Details</h4>
-          <RKInfoBox type="info">
-            Anyone working with you must complete a full suitability check (Form CMA-A1). 
-            Please provide their basic details below so we can initiate their application.
-          </RKInfoBox>
           
           {assistants.map((_, index) => (
             <div
