@@ -450,18 +450,6 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
               <Text style={styles.dataValue}>{application.numberOfAssistants || 0}</Text>
             </View>
           )}
-
-          <View style={styles.dataRow}>
-            <Text style={styles.dataLabel}>Work With Co-childminders</Text>
-            <Text style={styles.dataValue}>{application.workWithCochildminders || "N/A"}</Text>
-          </View>
-
-          {application.workWithCochildminders === "Yes" && (
-            <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>Number of Co-childminders</Text>
-              <Text style={styles.dataValue}>{application.numberOfCochildminders || 0}</Text>
-            </View>
-          )}
           
           <View style={styles.dataRow}>
             <Text style={styles.dataLabel}>Proposed Capacity</Text>
@@ -487,7 +475,7 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
 
           {application.assistants && application.assistants.length > 0 && (
             <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Assistants</Text>
+              <Text style={styles.subsectionTitle}>Assistants & Co-childminders</Text>
               {application.assistants.map((person, index) => (
                 <View key={index} style={styles.card}>
                   <Text style={styles.cardTitle}>{person.firstName} {person.lastName}</Text>
@@ -495,36 +483,6 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
                     <View style={styles.qualGridItem}>
                       <Text style={styles.cardSubtitle}>Role</Text>
                       <Text style={styles.cardText}>Assistant</Text>
-                    </View>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Date of Birth</Text>
-                      <Text style={styles.cardText}>{formatDate(person.dob)}</Text>
-                    </View>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Email</Text>
-                      <Text style={styles.cardText}>{person.email || "N/A"}</Text>
-                    </View>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Mobile</Text>
-                      <Text style={styles.cardText}>{person.phone || "N/A"}</Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Co-childminders Section */}
-          {application.cochildminders && application.cochildminders.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Co-childminders</Text>
-              {application.cochildminders.map((person: any, index: number) => (
-                <View key={index} style={styles.card}>
-                  <Text style={styles.cardTitle}>{person.firstName} {person.lastName}</Text>
-                  <View style={styles.qualGrid}>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Role</Text>
-                      <Text style={styles.cardText}>Co-childminder</Text>
                     </View>
                     <View style={styles.qualGridItem}>
                       <Text style={styles.cardSubtitle}>Date of Birth</Text>

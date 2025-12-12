@@ -14,7 +14,6 @@ import { AdminApplicationEditForm } from "@/components/admin/AdminApplicationEdi
 import { dbToFormData } from "@/lib/applicationDataMapper";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
-import { UnifiedCochildminderComplianceCard } from "@/components/admin/unified/UnifiedCochildminderComplianceCard";
 import { RequestApplicantDBSModal } from "@/components/admin/RequestApplicantDBSModal";
 import { AppleCard } from "@/components/admin/AppleCard";
 import { PersonalInfoCard } from "@/components/admin/application-detail/PersonalInfoCard";
@@ -474,18 +473,6 @@ const ApplicationDetailNew = () => {
                 parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
               />
             </div>
-
-            {/* Co-childminders Section */}
-            {(dbApplication.work_with_cochildminders === "Yes" || dbApplication.number_of_cochildminders > 0) && (
-              <div className="grid grid-cols-1 gap-6">
-                <UnifiedCochildminderComplianceCard
-                  parentId={id!}
-                  parentType="application"
-                  parentEmail={dbApplication.email}
-                  parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
-                />
-              </div>
-            )}
 
             {/* External Checks - Ofsted & Local Authority */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
