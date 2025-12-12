@@ -46,6 +46,9 @@ interface DBApplication {
   service_local_authority: string;
   work_with_others: string;
   number_of_assistants: number;
+  work_with_cochildminders: string;
+  number_of_cochildminders: number;
+  cochildminders: any;
   qualifications: any;
   people_in_household: any;
   people_regular_contact: any;
@@ -62,6 +65,7 @@ interface DBApplication {
   applicant_references: any;
   address_history: any;
   employment_gaps: string;
+  worked_with_children: string;
   right_to_work: string;
   previous_names: any;
   place_of_birth: string;
@@ -97,6 +101,7 @@ interface DBApplication {
   declaration_information_sharing: boolean;
   declaration_data_processing: boolean;
   declaration_signature: string;
+  declaration_print_name: string;
   declaration_date: string;
   payment_method: string;
 }
@@ -336,6 +341,9 @@ const ApplicationDetailNew = () => {
             localAuthority={dbApplication.service_local_authority}
             workWithOthers={dbApplication.work_with_others}
             numberOfAssistants={dbApplication.number_of_assistants}
+            workWithCochildminders={dbApplication.work_with_cochildminders}
+            numberOfCochildminders={dbApplication.number_of_cochildminders}
+            cochildminders={dbApplication.cochildminders}
             serviceHours={serviceHours}
             overnightCare={dbApplication.overnight_care}
             ofstedRegistered={dbApplication.service_ofsted_registered}
@@ -375,6 +383,8 @@ const ApplicationDetailNew = () => {
             safeguarding={qualifications.safeguarding}
             eyfsChildminding={qualifications.eyfsChildminding}
             level2Qual={qualifications.level2Qual}
+            foodHygiene={qualifications.foodHygiene}
+            otherTraining={qualifications.otherTraining}
           />
 
           <DBSVettingCard
@@ -406,13 +416,16 @@ const ApplicationDetailNew = () => {
             reference1Name={references.reference1?.name}
             reference1Relationship={references.reference1?.relationship}
             reference1Contact={references.reference1?.contact}
+            reference1Phone={references.reference1?.phone}
             reference1Childcare={references.reference1?.childcare}
             reference2Name={references.reference2?.name}
             reference2Relationship={references.reference2?.relationship}
             reference2Contact={references.reference2?.contact}
+            reference2Phone={references.reference2?.phone}
             reference2Childcare={references.reference2?.childcare}
             childVolunteered={dbApplication.child_volunteered}
             childVolunteeredConsent={dbApplication.child_volunteered_consent}
+            workedWithChildren={dbApplication.worked_with_children}
           />
 
           <DeclarationCard
@@ -422,6 +435,7 @@ const ApplicationDetailNew = () => {
             declarationInformationSharing={dbApplication.declaration_information_sharing}
             declarationDataProcessing={dbApplication.declaration_data_processing}
             declarationSignature={dbApplication.declaration_signature}
+            declarationPrintName={dbApplication.declaration_print_name}
             declarationDate={dbApplication.declaration_date}
             paymentMethod={dbApplication.payment_method}
           />

@@ -200,6 +200,9 @@ const Apply = () => {
             ages5to8: data.proposed5to8,
             ages8plus: data.proposed8plus
           },
+          work_with_cochildminders: data.workWithCochildminders,
+          number_of_cochildminders: data.numberOfCochildminders,
+          cochildminders: data.cochildminders,
           service_hours: data.childcareTimes,
           overnight_care: data.overnightCare,
           service_local_authority: data.localAuthority,
@@ -207,8 +210,11 @@ const Apply = () => {
             firstAid: data.firstAid,
             safeguarding: data.safeguarding,
             eyfsChildminding: data.eyfsChildminding,
-            level2Qual: data.level2Qual
+            level2Qual: data.level2Qual,
+            foodHygiene: data.foodHygiene,
+            otherTraining: data.otherTraining
           },
+          worked_with_children: data.workedWithChildren,
           employment_history: data.employmentHistory,
           employment_gaps: data.employmentGaps,
           child_volunteered: data.childVolunteered,
@@ -218,12 +224,14 @@ const Apply = () => {
               name: data.reference1Name,
               relationship: data.reference1Relationship,
               contact: data.reference1Contact,
+              phone: data.reference1Phone,
               childcare: data.reference1ChildcareRole
             },
             reference2: {
               name: data.reference2Name,
               relationship: data.reference2Relationship,
               contact: data.reference2Contact,
+              phone: data.reference2Phone,
               childcare: data.reference2ChildcareRole
             }
           },
@@ -264,6 +272,7 @@ const Apply = () => {
           declaration_information_sharing: data.consentLAShare,
           declaration_data_processing: data.consentDataProtection,
           declaration_signature: data.signatureFullName,
+          declaration_print_name: data.declarationPrintName,
           declaration_date: data.signatureDate,
           payment_method: null,
           user_id: null,
