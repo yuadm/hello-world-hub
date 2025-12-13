@@ -333,7 +333,7 @@ export function CochildminderFormPDF({ formData, cochildminderName, applicantNam
             <View style={styles.fieldRow}>
               <Text style={styles.label}>First Aid:</Text>
               <Text style={styles.value}>
-                {formData.first_aid_completed === "yes" 
+                {formData.first_aid_completed?.toLowerCase() === "yes" 
                   ? `Completed - ${formData.first_aid_provider || ""} (${formatDate(formData.first_aid_date)})`
                   : "Not completed"}
               </Text>
@@ -341,28 +341,28 @@ export function CochildminderFormPDF({ formData, cochildminderName, applicantNam
             <View style={styles.fieldRow}>
               <Text style={styles.label}>Safeguarding:</Text>
               <Text style={styles.value}>
-                {formData.safeguarding_completed === "yes"
+                {formData.safeguarding_completed?.toLowerCase() === "yes"
                   ? `Completed - ${formData.safeguarding_provider || ""} (${formatDate(formData.safeguarding_date)})`
                   : "Not completed"}
               </Text>
             </View>
             <View style={styles.fieldRow}>
               <Text style={styles.label}>PFA Training:</Text>
-              <Text style={styles.value}>{formData.pfa_completed || "Not completed"}</Text>
+              <Text style={styles.value}>{formData.pfa_completed === "Yes" ? "Yes" : "No"}</Text>
             </View>
             <View style={styles.fieldRow}>
               <Text style={styles.label}>Level 2 Qualification:</Text>
               <Text style={styles.value}>
-                {formData.level_2_qualification === "yes"
-                  ? `${formData.level_2_provider || ""} (${formatDate(formData.level_2_date)})`
+                {formData.level_2_qualification?.toLowerCase() === "yes"
+                  ? `Completed - ${formData.level_2_provider || ""} (${formatDate(formData.level_2_date)})`
                   : "Not completed"}
               </Text>
             </View>
             <View style={styles.fieldRow}>
               <Text style={styles.label}>EYFS Training:</Text>
               <Text style={styles.value}>
-                {formData.eyfs_completed === "yes"
-                  ? `${formData.eyfs_provider || ""} (${formatDate(formData.eyfs_date)})`
+                {formData.eyfs_completed?.toLowerCase() === "yes"
+                  ? `Completed - ${formData.eyfs_provider || ""} (${formatDate(formData.eyfs_date)})`
                   : "Not completed"}
               </Text>
             </View>
