@@ -137,7 +137,41 @@ Deno.serve(async (req) => {
 
     console.log('[approve-and-convert] Household members transferred:', householdMembers?.length || 0);
 
-    // 2. Transfer assistants from application to employee
+    // 2. Transfer co-childminders from application to employee
+    const { data: cochildminders, error: updateCochildmindersError } = await supabase
+      .from('compliance_cochildminders')
+      .update({
+        employee_id: employee.id,
+        application_id: null,
+      })
+      .eq('application_id', applicationId)
+      .select('id, first_name, last_name');
+
+    if (updateCochildmindersError) {
+      console.error('[approve-and-convert] Failed to transfer cochildminders:', updateCochildmindersError.message);
+      throw new Error(`Failed to transfer cochildminders: ${updateCochildmindersError.message}`);
+    }
+
+    console.log('[approve-and-convert] Cochildminders transferred:', cochildminders?.length || 0);
+
+    // 3. Transfer cochildminder applications/forms from application to employee
+    const { data: cochildminderForms, error: updateCochildminderFormsError } = await supabase
+      .from('cochildminder_applications')
+      .update({
+        employee_id: employee.id,
+        application_id: null,
+      })
+      .eq('application_id', applicationId)
+      .select('id');
+
+    if (updateCochildminderFormsError) {
+      console.error('[approve-and-convert] Failed to transfer cochildminder forms:', updateCochildminderFormsError.message);
+      // Don't throw - forms are optional
+    } else {
+      console.log('[approve-and-convert] Cochildminder forms transferred:', cochildminderForms?.length || 0);
+    }
+
+    // 4. Transfer assistants from application to employee
     const { data: assistants, error: updateAssistantsError } = await supabase
       .from('compliance_assistants')
       .update({
@@ -270,6 +304,7 @@ Deno.serve(async (req) => {
         success: true,
         employeeId: employee.id,
         householdMembersCount: householdMembers?.length || 0,
+        cochildmindersCount: cochildminders?.length || 0,
         assistantsCount: assistants?.length || 0,
         referenceRequestsCount: referenceRequests?.length || 0,
         ofstedFormsCount: ofstedForms?.length || 0,
