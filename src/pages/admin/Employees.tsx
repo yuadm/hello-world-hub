@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,13 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Employee } from "@/types/employee";
 import { getEmploymentStatusConfig } from "@/lib/employeeHelpers";
 import { Badge } from "@/components/ui/badge";
+import { DeleteEmployeeModal } from "@/components/admin/DeleteEmployeeModal";
 
 const AdminEmployees = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const AdminEmployees = () => {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -192,17 +195,31 @@ const AdminEmployees = () => {
                             : "N/A"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/admin/employees/${emp.id}`);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/admin/employees/${emp.id}`);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEmployeeToDelete(emp);
+                                setDeleteModalOpen(true);
+                              }}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -213,6 +230,16 @@ const AdminEmployees = () => {
           </CardContent>
         </Card>
       </div>
+
+      <DeleteEmployeeModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setEmployeeToDelete(null);
+        }}
+        employee={employeeToDelete}
+        onSuccess={fetchEmployees}
+      />
     </AdminLayout>
   );
 };
