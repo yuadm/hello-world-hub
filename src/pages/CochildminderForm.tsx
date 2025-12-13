@@ -97,8 +97,8 @@ export default function CochildminderForm() {
         .from("compliance_cochildminders")
         .select(`
           *,
-          childminder_applications(id, first_name, last_name, premises_address, service_local_authority, service_age_range, service_hours),
-          employees(id, first_name, last_name, premises_postcode, local_authority)
+          childminder_applications(id, first_name, last_name, premises_address, premises_ownership, service_local_authority, service_age_range, service_hours),
+          employees(id, first_name, last_name, premises_postcode, premises_type, local_authority)
         `)
         .eq("form_token", token)
         .maybeSingle();
@@ -118,9 +118,16 @@ export default function CochildminderForm() {
         const app = cochildminder.childminder_applications;
         prefillData = {
           premisesAddress: (app.premises_address as any) || { line1: "", line2: "", town: "", postcode: "" },
+          premisesType: (app as any).premises_ownership || "",
           localAuthority: app.service_local_authority || "",
           serviceAgeGroups: Array.isArray(app.service_age_range) ? (app.service_age_range as string[]) : [],
           serviceHours: Array.isArray(app.service_hours) ? (app.service_hours as string[]) : [],
+        };
+      } else if (isEmployee && cochildminder.employees) {
+        const emp = cochildminder.employees;
+        prefillData = {
+          premisesType: (emp as any).premises_type || "",
+          localAuthority: (emp as any).local_authority || "",
         };
       }
 
