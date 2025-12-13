@@ -97,6 +97,14 @@ export const Section4Service = ({ form }: Props) => {
     return calculateCapacityRatios(workWithAssistants, numberOfAssistants);
   }, [workWithAssistants, numberOfAssistants]);
 
+  // Auto-save calculated capacity values to form for database storage
+  useEffect(() => {
+    setValue("proposedUnder1", capacityRatios.maxUnder1);
+    setValue("proposedUnder5", capacityRatios.maxUnder5);
+    setValue("proposed5to8", capacityRatios.maxUnder8 - capacityRatios.maxUnder5);
+    setValue("proposed8plus", 0);
+  }, [capacityRatios, setValue]);
+
   return (
     <div className="space-y-8">
       <RKSectionTitle 
