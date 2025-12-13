@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.check-compliance-status]
 verify_jwt = false
+
+[functions.delete-employee-and-revert]
+verify_jwt = false
